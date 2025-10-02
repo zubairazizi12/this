@@ -71,11 +71,16 @@ export default function TrainersPage() {
     queryKey: ["/api/trainers"],
     queryFn: async () => {
       const res = await fetch("/api/trainers");
-      return res.json();
+      const data = await res.json();
+      // Ensure we always return an array
+      return Array.isArray(data) ? data : [];
     },
   });
 
-  const filteredTrainers = trainers.filter((trainer) => {
+  // Ensure trainers is always an array before filtering
+  const trainersArray = Array.isArray(trainers) ? trainers : [];
+  
+  const filteredTrainers = trainersArray.filter((trainer) => {
     const fullName = `${trainer.name} ${trainer.lastName}`.toLowerCase();
     const matchesSearch =
       fullName.includes(searchTerm.toLowerCase()) ||
@@ -85,7 +90,7 @@ export default function TrainersPage() {
     return matchesSearch && matchesDepartment;
   });
 
-  const departments = Array.from(new Set(trainers.map((t) => t.department)));
+  const departments = Array.from(new Set(trainersArray.map((t) => t.department)));
 
   const handleSelectForm = (trainer: Trainer, ft: FormType) => {
     setSelectedForm({
