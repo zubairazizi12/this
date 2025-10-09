@@ -22,6 +22,10 @@ export interface IStorage {
   // User operations (mandatory for Replit Auth)
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
+  getAllUsers(): Promise<User[]>;
+  createUser(user: { email: string; firstName: string; lastName?: string; role: string; password: string }): Promise<User>;
+  updateUser(id: string, user: Partial<{ email: string; firstName: string; lastName?: string; role: string }>): Promise<User>;
+  deleteUser(id: string): Promise<void>;
 
   // Resident operations
   getAllResidents(): Promise<Resident[]>;
@@ -155,6 +159,98 @@ export class DatabaseStorage implements IStorage {
     
     this.demoUsers.set(userData._id, user);
     return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    if (this.isMongoConnected) {
+      try {
+        const users = await UserModel.find().sort({ createdAt: -1 });
+        return users;
+      } catch (error) {
+        console.error('Error fetching users from MongoDB:', (error as Error).message);
+      }
+    }
+    return Array.from(this.demoUsers.values()).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
+  async createUser(userData: { email: string; firstName: string; lastName?: string; role: string; password: string }): Promise<User> {
+    if (this.isMongoConnected) {
+      try {
+        const id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const newUser = await UserModel.create({
+          _id: id,
+          email: userData.email,
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          role: userData.role,
+        });
+        return newUser;
+      } catch (error) {
+        console.error('Error creating user in MongoDB:', (error as Error).message);
+        throw error;
+      }
+    }
+    
+    const id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const newUser: User = {
+      _id: id,
+      email: userData.email,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      role: userData.role,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    this.demoUsers.set(id, newUser);
+    return newUser;
+  }
+
+  async updateUser(id: string, userData: Partial<{ email: string; firstName: string; lastName?: string; role: string }>): Promise<User> {
+    if (this.isMongoConnected) {
+      try {
+        const user = await UserModel.findByIdAndUpdate(
+          id,
+          {
+            ...userData,
+            updatedAt: new Date(),
+          },
+          { new: true }
+        );
+        if (!user) throw new Error('User not found');
+        return user;
+      } catch (error) {
+        console.error('Error updating user in MongoDB:', (error as Error).message);
+        throw error;
+      }
+    }
+    
+    const existingUser = this.demoUsers.get(id);
+    if (!existingUser) throw new Error('User not found');
+    
+    const updatedUser: User = {
+      ...existingUser,
+      ...userData,
+      updatedAt: new Date(),
+    };
+    
+    this.demoUsers.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    if (this.isMongoConnected) {
+      try {
+        await UserModel.findByIdAndDelete(id);
+      } catch (error) {
+        console.error('Error deleting user from MongoDB:', (error as Error).message);
+        throw error;
+      }
+    } else {
+      this.demoUsers.delete(id);
+    }
   }
 
   // Resident operations

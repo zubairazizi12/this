@@ -1,4 +1,3 @@
-// UserManagement.tsx
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { User } from "@shared/schema";
@@ -9,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import UserFormDialog from "@/components/forms/UserFormDialog";
 
 export default function UserManagement() {
   const { toast } = useToast();
@@ -17,6 +17,7 @@ export default function UserManagement() {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
 
 
 
@@ -58,6 +59,21 @@ const filteredUsers = users.filter(
 );
 
 
+  const handleAddUser = () => {
+    setEditingUser(null);
+    setIsUserDialogOpen(true);
+  };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setIsUserDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setIsUserDialogOpen(false);
+    setEditingUser(null);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Header />
@@ -70,13 +86,12 @@ const filteredUsers = users.filter(
             <p className="text-slate-600 dark:text-slate-400">مدیریت حساب‌های کاربران سیستم</p>
           </div>
           <Button
-  onClick={() => setIsUserDialogOpen(true)}
-  data-testid="button-add-user"
->
-  <Plus className="h-4 w-4 mr-2" />
-  افزودن کاربر جدید
-</Button>
-
+            onClick={handleAddUser}
+            data-testid="button-add-user"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            افزودن کاربر جدید
+          </Button>
         </div>
 
         {/* Main Card */}
@@ -132,7 +147,7 @@ const filteredUsers = users.filter(
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => alert("ویرایش کاربر هنوز آماده نیست")}
+                            onClick={() => handleEditUser(user)}
                           >
                             ویرایش
                           </Button>
@@ -153,6 +168,13 @@ const filteredUsers = users.filter(
           </CardContent>
         </Card>
       </div>
+
+      <UserFormDialog
+        isOpen={isUserDialogOpen}
+        onClose={handleCloseDialog}
+        onSuccess={fetchUsers}
+        editingUser={editingUser}
+      />
     </div>
   );
 }

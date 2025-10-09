@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { setupDemoAuth, isDemoAuthenticated } from "./demoAuth";
 import { UserController, ResidentController, TeacherController } from "./controllers";
 import { trainerRoutes } from "./routes/trainerRoutes";
+import { userRoutes } from "./routes/userRoutes";
 import { TeacherModel } from "./models";
 import { teacherActivityRoutes } from "./routes/form-J";
 import checklistRoutes from "./routes/form-F";
@@ -37,8 +38,7 @@ app.use("/api/checklists", checklistRoutes);
   app.get('/api/auth/user', isDemoAuthenticated, UserController.getCurrentUser);
 
   // User routes
-  app.get("/api/users", isDemoAuthenticated, UserController.getAllUsers);
-  app.get("/api/users/:id", isDemoAuthenticated, UserController.getUserById);
+  app.use("/api/users", isDemoAuthenticated, userRoutes);
 
   // Resident routes
   app.get("/api/residents", isDemoAuthenticated, ResidentController.getAllResidents);
