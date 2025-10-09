@@ -4,6 +4,7 @@ import { setupDemoAuth, isDemoAuthenticated } from "./demoAuth";
 import { UserController, ResidentController, TeacherController } from "./controllers";
 import { trainerRoutes } from "./routes/trainerRoutes";
 import { userRoutes } from "./routes/userRoutes";
+import { lectureRoutes } from "./routes/lectureRoutes";
 import { TeacherModel } from "./models";
 import { teacherActivityRoutes } from "./routes/form-J";
 import checklistRoutes from "./routes/form-F";
@@ -53,6 +54,9 @@ app.use("/api/checklists", checklistRoutes);
   app.post("/api/teachers", isDemoAuthenticated, TeacherController.createTeacher);
   app.put("/api/teachers/:id", isDemoAuthenticated, TeacherController.updateTeacher);
   app.delete("/api/teachers/:id", isDemoAuthenticated, TeacherController.deleteTeacher);
+  // Lecture routes
+  app.use("/api/lectures", isDemoAuthenticated, lectureRoutes);
+
 
   // Forms
   app.get("/api/forms", isDemoAuthenticated, async (req, res) => {
