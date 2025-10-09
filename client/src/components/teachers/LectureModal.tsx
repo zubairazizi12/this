@@ -46,9 +46,13 @@ export default function LectureModal({ teacher, open, onClose }: LectureModalPro
 
   const handleSubmit = async () => {
     try {
+      // تبدیل تاریخ شمسی به میلادی
+      const gregorianDate = lecture.date?.toDate(); // تبدیل به JavaScript Date (میلادی)
+      const dateString = gregorianDate ? gregorianDate.toISOString().split('T')[0] : "";
+      
       const lectureData = {
         teacherId: teacher._id,
-        date: lecture.date?.format("YYYY-MM-DD") || "",
+        date: dateString,
         subject: lecture.subject,
         startTime: lecture.startTime,
         endTime: lecture.endTime,
