@@ -31,7 +31,7 @@ export async function setupDemoAuth(app: Express) {
   app.post("/api/login", async (req, res) => {
     const { username, password } = req.body;
     
-    // Check demo credentials
+    // Check demo credentials first
     const isAdmin = username === DEMO_CREDENTIALS.admin.username && 
                    password === DEMO_CREDENTIALS.admin.password;
     const isViewer = username === DEMO_CREDENTIALS.viewer.username && 
@@ -71,7 +71,39 @@ export async function setupDemoAuth(app: Express) {
         }
       });
     } else {
-      res.status(401).json({ message: "Invalid credentials" });
+      // Check for registered users in database
+      try {
+        const user = await storage.getUserByEmail(username);
+        
+        if (user && user.password === password) {
+          // Store user in session
+          (req.session as any).user = {
+            claims: {
+              sub: user._id,
+              email: user.email,
+              first_name: user.firstName,
+              last_name: user.lastName,
+            },
+            expires_at: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60), // 1 week from now
+          };
+
+          res.json({ 
+            success: true, 
+            user: {
+              _id: user._id,
+              email: user.email,
+              firstName: user.firstName,
+              lastName: user.lastName,
+              role: user.role
+            }
+          });
+        } else {
+          res.status(401).json({ message: "Invalid credentials" });
+        }
+      } catch (error) {
+        console.error('Error checking user credentials:', error);
+        res.status(401).json({ message: "Invalid credentials" });
+      }
     }
   });
 

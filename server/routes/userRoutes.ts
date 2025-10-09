@@ -7,7 +7,9 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const users = await storage.getAllUsers();
-    res.json(users);
+    // Remove password from response
+    const sanitizedUsers = users.map(({ password, ...user }) => user);
+    res.json(sanitizedUsers);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Failed to fetch users' });
@@ -21,7 +23,9 @@ router.get('/:id', async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json(user);
+    // Remove password from response
+    const { password, ...sanitizedUser } = user;
+    res.json(sanitizedUser);
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ message: 'Failed to fetch user' });
@@ -33,16 +37,18 @@ router.post('/', async (req, res) => {
   try {
     const { email, firstName, lastName, role, password } = req.body;
     
-    if (!email || !firstName || !role) {
-      return res.status(400).json({ message: 'Email, firstName, and role are required' });
+    if (!email || !firstName || !role || !password) {
+      return res.status(400).json({ message: 'Email, firstName, role, and password are required' });
     }
     
     if (!['admin', 'viewer'].includes(role)) {
       return res.status(400).json({ message: 'Role must be either admin or viewer' });
     }
     
-    const newUser = await storage.createUser({ email, firstName, lastName, role, password: password || 'defaultpass' });
-    res.status(201).json(newUser);
+    const newUser = await storage.createUser({ email, firstName, lastName, role, password });
+    // Remove password from response
+    const { password: _, ...sanitizedUser } = newUser;
+    res.status(201).json(sanitizedUser);
   } catch (error) {
     console.error('Error creating user:', error);
     res.status(500).json({ message: 'Failed to create user' });
@@ -52,14 +58,21 @@ router.post('/', async (req, res) => {
 // Update user
 router.put('/:id', async (req, res) => {
   try {
-    const { email, firstName, lastName, role } = req.body;
+    const { email, firstName, lastName, role, password } = req.body;
     
     if (role && !['admin', 'viewer'].includes(role)) {
       return res.status(400).json({ message: 'Role must be either admin or viewer' });
     }
     
-    const updatedUser = await storage.updateUser(req.params.id, { email, firstName, lastName, role });
-    res.json(updatedUser);
+    const updateData: any = { email, firstName, lastName, role };
+    if (password) {
+      updateData.password = password;
+    }
+    
+    const updatedUser = await storage.updateUser(req.params.id, updateData);
+    // Remove password from response
+    const { password: _, ...sanitizedUser } = updatedUser;
+    res.json(sanitizedUser);
   } catch (error) {
     console.error('Error updating user:', error);
     if ((error as Error).message === 'User not found') {

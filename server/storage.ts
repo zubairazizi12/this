@@ -23,8 +23,9 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: { email: string; firstName: string; lastName?: string; role: string; password: string }): Promise<User>;
-  updateUser(id: string, user: Partial<{ email: string; firstName: string; lastName?: string; role: string }>): Promise<User>;
+  updateUser(id: string, user: Partial<{ email: string; firstName: string; lastName?: string; role: string; password?: string }>): Promise<User>;
   deleteUser(id: string): Promise<void>;
 
   // Resident operations
@@ -175,6 +176,18 @@ export class DatabaseStorage implements IStorage {
     );
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    if (this.isMongoConnected) {
+      try {
+        const user = await UserModel.findOne({ email });
+        return user || undefined;
+      } catch (error) {
+        console.error('Error fetching user by email from MongoDB:', (error as Error).message);
+      }
+    }
+    return Array.from(this.demoUsers.values()).find(u => u.email === email);
+  }
+
   async createUser(userData: { email: string; firstName: string; lastName?: string; role: string; password: string }): Promise<User> {
     if (this.isMongoConnected) {
       try {
@@ -184,6 +197,7 @@ export class DatabaseStorage implements IStorage {
           email: userData.email,
           firstName: userData.firstName,
           lastName: userData.lastName,
+          password: userData.password,
           role: userData.role,
         });
         return newUser;
@@ -199,6 +213,7 @@ export class DatabaseStorage implements IStorage {
       email: userData.email,
       firstName: userData.firstName,
       lastName: userData.lastName,
+      password: userData.password,
       role: userData.role,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -208,7 +223,7 @@ export class DatabaseStorage implements IStorage {
     return newUser;
   }
 
-  async updateUser(id: string, userData: Partial<{ email: string; firstName: string; lastName?: string; role: string }>): Promise<User> {
+  async updateUser(id: string, userData: Partial<{ email: string; firstName: string; lastName?: string; role: string; password?: string }>): Promise<User> {
     if (this.isMongoConnected) {
       try {
         const user = await UserModel.findByIdAndUpdate(

@@ -6,6 +6,7 @@ export interface IUser extends Document {
   firstName?: string;
   lastName?: string;
   profileImageUrl?: string;
+  password?: string;
   role: string;
   createdAt: Date;
   updatedAt: Date;
@@ -17,6 +18,7 @@ const userSchema = new Schema<IUser>({
   firstName: String,
   lastName: String,
   profileImageUrl: String,
+  password: String,
   role: { type: String, required: true, default: "viewer" }, // admin or viewer
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },

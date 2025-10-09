@@ -19,6 +19,7 @@ export default function UserFormDialog({ isOpen, onClose, onSuccess, editingUser
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [role, setRole] = useState("viewer");
   const [loading, setLoading] = useState(false);
 
@@ -28,10 +29,12 @@ export default function UserFormDialog({ isOpen, onClose, onSuccess, editingUser
       setLastName(editingUser.lastName || "");
       setEmail(editingUser.email || "");
       setRole(editingUser.role || "viewer");
+      setPassword("");
     } else {
       setFirstName("");
       setLastName("");
       setEmail("");
+      setPassword("");
       setRole("viewer");
     }
   }, [editingUser, isOpen]);
@@ -41,15 +44,24 @@ export default function UserFormDialog({ isOpen, onClose, onSuccess, editingUser
     setLoading(true);
     try {
       if (editingUser) {
-        await axios.put(`/api/users/${editingUser._id}`, { firstName, lastName, email, role });
+        const updateData: any = { firstName, lastName, email, role };
+        if (password) {
+          updateData.password = password;
+        }
+        await axios.put(`/api/users/${editingUser._id}`, updateData);
         toast({ title: "موفقیت", description: "کاربر به‌روزرسانی شد" });
       } else {
-        await axios.post("/api/users", { firstName, lastName, email, role });
+        if (!password) {
+          toast({ title: "خطا", description: "رمز عبور الزامی است", variant: "destructive" });
+          return;
+        }
+        await axios.post("/api/users", { firstName, lastName, email, password, role });
         toast({ title: "موفقیت", description: "کاربر جدید ثبت شد" });
       }
       setFirstName("");
       setLastName("");
       setEmail("");
+      setPassword("");
       setRole("viewer");
       onSuccess();
       onClose();
@@ -82,6 +94,18 @@ export default function UserFormDialog({ isOpen, onClose, onSuccess, editingUser
           <div>
             <label className="block mb-1 font-medium">ایمیل</label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+          <div>
+            <label className="block mb-1 font-medium">
+              رمز عبور {editingUser && <span className="text-sm text-gray-500">(برای تغییر رمز وارد کنید)</span>}
+            </label>
+            <Input 
+              type="password" 
+              value={password} 
+              onChange={(e) => setPassword(e.target.value)} 
+              required={!editingUser}
+              placeholder={editingUser ? "برای تغییر رمز وارد کنید" : "رمز عبور"}
+            />
           </div>
           <div>
             <label className="block mb-1 font-medium">نقش</label>

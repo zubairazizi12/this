@@ -107,6 +107,7 @@ export type User = {
   firstName?: string;
   lastName?: string;
   profileImageUrl?: string;
+  password?: string;
   role: string;
   createdAt: Date;
   updatedAt: Date;
