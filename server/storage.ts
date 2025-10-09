@@ -145,6 +145,8 @@ export class DatabaseStorage implements IStorage {
         return user!;
       } catch (error) {
         console.error('Error upserting user to MongoDB:', (error as Error).message);
+        console.log('Falling back to in-memory storage');
+        this.isMongoConnected = false;
       }
     }
     
@@ -169,6 +171,8 @@ export class DatabaseStorage implements IStorage {
         return users;
       } catch (error) {
         console.error('Error fetching users from MongoDB:', (error as Error).message);
+        console.log('Falling back to in-memory users');
+        this.isMongoConnected = false;
       }
     }
     return Array.from(this.demoUsers.values()).sort((a, b) => 
@@ -203,7 +207,8 @@ export class DatabaseStorage implements IStorage {
         return newUser;
       } catch (error) {
         console.error('Error creating user in MongoDB:', (error as Error).message);
-        throw error;
+        console.log('Falling back to in-memory storage');
+        this.isMongoConnected = false;
       }
     }
     
