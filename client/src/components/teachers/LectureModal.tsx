@@ -46,21 +46,19 @@ export default function LectureModal({ teacher, open, onClose }: LectureModalPro
 
   const handleSubmit = async () => {
     try {
-      const formData = new FormData();
-      formData.append("teacherId", teacher._id);
-      formData.append("date", lecture.date?.format("YYYY-MM-DD") || "");
-      formData.append("subject", lecture.subject);
-      formData.append("startTime", lecture.startTime);
-      formData.append("endTime", lecture.endTime);
-      formData.append("room", lecture.room);
-      formData.append("notes", lecture.notes);
+      const lectureData = {
+        teacherId: teacher._id,
+        date: lecture.date?.format("YYYY-MM-DD") || "",
+        subject: lecture.subject,
+        startTime: lecture.startTime,
+        endTime: lecture.endTime,
+        room: lecture.room,
+        notes: lecture.notes,
+        files: lecture.files.map(f => f.name), // ذخیره نام فایل‌ها
+      };
 
-      lecture.files.forEach((file) => {
-        formData.append("files", file);
-      });
-
-      await axios.post("/api/lectures", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      await axios.post("/api/lectures", lectureData, {
+        headers: { "Content-Type": "application/json" },
       });
 
       alert("لکچر موفقانه ثبت شد ✅");

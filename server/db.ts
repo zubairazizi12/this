@@ -31,6 +31,8 @@ export async function connectDB() {
     console.log('To connect to MongoDB Atlas, set MONGODB_URI environment variable');
     // Initialize in-memory data for demo
     await initializeInMemoryData();
+    // Re-throw the error so storage.ts knows MongoDB failed
+    throw error;
   }
 }
 
