@@ -8,6 +8,7 @@ import setting from "@/pages/setting";
 import { info } from "console";
 import { Form } from "../ui/form";
 import Header from "@/components/layout/header";
+import jobs from "@/components/jobs/VacantPosts";
 
 const navigation = [
   { name: 'ترینری', href: '/residents', icon: Users },
@@ -15,6 +16,7 @@ const navigation = [
   { name: 'گزارشات', href: '/reports', icon: BarChart3 },
   // { name: 'فورم ها', href: '/forms', icon: FormInputIcon },
   { name: 'تنظیمات', href: '/setting', icon: SettingsIcon },
+  { name: 'وظایف', href: '/jobs', icon: SettingsIcon },
   // { name: 'درباره ما', href: '/about', icon: InfoIcon },
 ];
 
