@@ -22,8 +22,8 @@ export interface ITeacher extends Document {
   emailAddress: string;
   postCode: string;
   appointmentType: string;
-  department: string;
-  experience: number;
+  // department: string;
+  // experience: number;
   status: string;
   profileImageUrl?: string;
   createdAt: Date;
@@ -51,8 +51,8 @@ const teacherSchema = new Schema<ITeacher>({
   emailAddress: { type: String, required: true },
   postCode: { type: String, required: true },
   appointmentType: { type: String, required: true },
-  department: { type: String, required: true },
-  experience: { type: Number, required: true },
+  // department: { type: String, required: true },
+  // experience: { type: Number, required: true },
   status: { type: String, required: true, default: "active" },
   profileImageUrl: String,
   createdAt: { type: Date, default: Date.now },

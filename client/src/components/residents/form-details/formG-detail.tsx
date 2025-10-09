@@ -1,7 +1,7 @@
+import React, { useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { useTrainer } from "../../../context/TrainerContext";
 
 interface FormGDetailsProps {
   residentId: string;
@@ -9,116 +9,254 @@ interface FormGDetailsProps {
 }
 
 export default function FormGDetails({ residentId, onClose }: FormGDetailsProps) {
-  // گرفتن اطلاعات فرم G از API
-  const { data, isLoading } = useQuery<any>({
-    queryKey: ["/api/evaluationFormG"],
+  const { trainerId } = useTrainer();
+  const printRef = useRef<HTMLDivElement>(null);
+
+  // استایل نمایش و چاپ — توجه: direction: rtl اضافه شده
+  const styles = `
+    .form-container { font-family: Tahoma, sans-serif; color: #000; direction: rtl; }
+    .info-table, .form-table, .sign-table { border-collapse: collapse; width: 100%; margin-bottom: 18px; table-layout: fixed; }
+    .info-table td, .form-table th, .form-table td, .sign-table th, .sign-table td {
+      border: 1px solid #222;
+      padding: 8px 10px;
+      text-align: center;
+      vertical-align: middle;
+      word-break: break-word;
+      font-size: 13px;
+    }
+    .form-table th { background: #f3f4f6; font-weight: 700; }
+    .info-label { font-weight: 700; display:block; margin-bottom:6px; }
+    .info-value { font-size: 13px; }
+    .signature-cell { height: 56px; } /* فضای امضا در هر ردیف جدول */
+    .final-sign td { height: 90px; }
+    .title { text-align: center; font-weight: 800; margin: 12px 0 18px; font-size: 16px; }
+    /* کمی بزرگ‌تر کردن فاصله ستون ها عملا با padding و width انجام شد */
+    @page { size: A4 portrait; margin: 10mm; }
+    @media print {
+      body { -webkit-print-color-adjust: exact; color-adjust: exact; }
+      button { display: none !important; }
+    }
+  `;
+
+  const { data = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/evaluationFormG", trainerId],
     queryFn: () =>
-      fetch(`/api/evaluationFormG`).then((r) => r.json()),
+      fetch(`/api/evaluationFormG/trainer/${trainerId}`).then((r) => r.json()),
   });
 
   if (isLoading) return <div>در حال بارگذاری...</div>;
-  if (!data || !data.length) return <div>فرم پیدا نشد.</div>;
+  if (!data.length) return <div>هیچ فرمی موجود نیست.</div>;
 
-  const form = data[0]; // اولین فرم را برای نمایش بگیرید
+  const form =
+    data.find(
+      (f) =>
+        f.personalInfo?._id === residentId ||
+        f.personalInfo?.residentId === residentId ||
+        (f._id === residentId)
+    ) || data[0];
 
-  // Export PDF
-  const exportPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.text(`فرم G – ${form.name} ${form.fatherName}`, 14, 20);
+  if (!form) return <div>فرم مورد نظر پیدا نشد.</div>;
 
-    autoTable(doc as any, {
-      startY: 30,
-      head: [["فیلد", "مقدار"]],
-      body: [
-        ["نام", form.name],
-        ["پدر", form.fatherName],
-        ["سال", form.year],
-        ["سال آموزش", form.trainingYear],
-        ["دیپارتمنت", form.department],
-        ["امتحان ۱ کتبی", form.exam1Written],
-        ["امتحان ۱ عملی", form.exam1Practical],
-        ["امتحان ۲ کتبی", form.exam2Written],
-        ["امتحان ۲ عملی", form.exam2Practical],
-        ["نهایی کتبی", form.finalWritten],
-        ["نهایی عملی", form.finalPractical],
-        ["مجموع", form.total],
-        ["میانگین", form.average],
-        ["معلم", form.teacherName],
-        ["امضا معلم", form.teacherSigned ? "بله" : "خیر"],
-        ["رئیس دیپارتمنت", form.departmentHead],
-        ["رئیس برنامه", form.programHead],
-        ["رئیس شفاخانه", form.hospitalHead],
-      ],
-    });
+  const emptySignatures = Array(6).fill("");
 
-    doc.save(`FormG_${form.name}_${form.fatherName}.pdf`);
-  };
-
-  // Export Excel
+  // --- Export Excel ---
   const exportExcel = () => {
-    const wsData = [
-      ["فیلد", "مقدار"],
-      ["نام", form.name],
-      ["پدر", form.fatherName],
-      ["سال", form.year],
-      ["سال آموزش", form.trainingYear],
-      ["دیپارتمنت", form.department],
-      ["امتحان ۱ کتبی", form.exam1Written],
-      ["امتحان ۱ عملی", form.exam1Practical],
-      ["امتحان ۲ کتبی", form.exam2Written],
-      ["امتحان ۲ عملی", form.exam2Practical],
-      ["نهایی کتبی", form.finalWritten],
-      ["نهایی عملی", form.finalPractical],
-      ["مجموع", form.total],
-      ["میانگین", form.average],
-      ["معلم", form.teacherName],
-      ["امضا معلم", form.teacherSigned ? "بله" : "خیر"],
-      ["رئیس دیپارتمنت", form.departmentHead],
-      ["رئیس برنامه", form.programHead],
-      ["رئیس شفاخانه", form.hospitalHead],
+    const wsData: any[] = [
+      ["مشخصات دستیار"],
+      ["نام", form.personalInfo?.residentName || ""],
+      ["نام پدر", form.personalInfo?.fatherName || ""],
+      ["دیپارتمنت", form.personalInfo?.department || ""],
+      ["سال آموزش", form.personalInfo?.trainingYear || ""],
+      ["سال", form.personalInfo?.year || ""],
+      [],
+      [
+        "شماره",
+        "امتحان چهار ماه اول", "", 
+        "امتحان چهار ماه دوم", "",
+        "امتحان نهایی", "",
+        "مجموع",
+        "نام استاد",
+        "امضای استاد"
+      ],
+      [
+        "",
+        "تحریری", "عملی",
+        "تحریری", "عملی",
+        "تحریری", "عملی",
+        "", "", ""
+      ],
+      ...((form.scores || []).map((row: any, idx: number) => [
+        idx + 1,
+        row?.exam1Written ?? "",
+        row?.exam1Practical ?? "",
+        row?.exam2Written ?? "",
+        row?.exam2Practical ?? "",
+        row?.finalWritten ?? "",
+        row?.finalPractical ?? "",
+        row?.total ?? "",
+        row?.teacherName ?? "",
+        emptySignatures[idx] || ""
+      ])),
+      [],
+      ["شف دیپارتمنت", "آمر پروگرام تریننگ", "ریس شفاخانه"],
+      ["", "", ""] // ردیف خالی برای امضا در اکسل
     ];
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(wsData);
     XLSX.utils.book_append_sheet(wb, ws, "FormG");
-    XLSX.writeFile(wb, `FormG_${form.name}_${form.fatherName}.xlsx`);
+    XLSX.writeFile(
+      wb,
+      `FormG_${form.personalInfo?.residentName || "resident"}_${form.personalInfo?.fatherName || ""}.xlsx`
+    );
+  };
+
+  // --- Print only the form (open new window with the form html + styles) ---
+  const handlePrint = () => {
+    if (!printRef.current) return;
+    const printWindow = window.open("", "_blank", "width=1000,height=800");
+    if (!printWindow) return;
+
+    // inject styles and the innerHTML of printRef
+    printWindow.document.write(`
+      <html lang="fa" dir="rtl">
+        <head>
+          <meta charset="utf-8" />
+          <title>پرینت فرم G</title>
+          <style>${styles}</style>
+        </head>
+        <body>
+          <div class="form-container">
+            ${printRef.current.innerHTML}
+          </div>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+
+    // اجازه بده مرورگر یک لحظه صفحه را رندر کند سپس چاپ
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
   };
 
   return (
-    <div className="p-4">
-      <h3 className="text-lg font-bold mb-2">
-        فرم G – {form.name} {form.fatherName}
-      </h3>
+    <div className="form-container">
+      <style>{styles}</style>
 
-      <table className="table-auto border-collapse border border-slate-300 text-sm w-full">
-        <tbody>
-          <tr><td className="border px-2 py-1 font-semibold">نام</td><td className="border px-2 py-1">{form.name}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">پدر</td><td className="border px-2 py-1">{form.fatherName}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">سال</td><td className="border px-2 py-1">{form.year}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">سال آموزش</td><td className="border px-2 py-1">{form.trainingYear}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">دیپارتمنت</td><td className="border px-2 py-1">{form.department}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">امتحان ۱ کتبی</td><td className="border px-2 py-1">{form.exam1Written}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">امتحان ۱ عملی</td><td className="border px-2 py-1">{form.exam1Practical}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">امتحان ۲ کتبی</td><td className="border px-2 py-1">{form.exam2Written}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">امتحان ۲ عملی</td><td className="border px-2 py-1">{form.exam2Practical}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">نهایی کتبی</td><td className="border px-2 py-1">{form.finalWritten}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">نهایی عملی</td><td className="border px-2 py-1">{form.finalPractical}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">مجموع</td><td className="border px-2 py-1">{form.total}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">میانگین</td><td className="border px-2 py-1">{form.average}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">معلم</td><td className="border px-2 py-1">{form.teacherName}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">امضا معلم</td><td className="border px-2 py-1">{form.teacherSigned ? "بله" : "خیر"}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">رئیس دیپارتمنت</td><td className="border px-2 py-1">{form.departmentHead}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">رئیس برنامه</td><td className="border px-2 py-1">{form.programHead}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">رئیس شفاخانه</td><td className="border px-2 py-1">{form.hospitalHead}</td></tr>
-        </tbody>
-      </table>
+      <div ref={printRef}>
+        <h3 className="title">
+          فرم G – {form.personalInfo?.residentName || ""} {form.personalInfo?.fatherName || ""}
+        </h3>
 
-      <div className="mt-4 space-x-2">
-        <button className="bg-blue-500 text-white px-3 py-1 rounded" onClick={exportPDF}>چاپ PDF</button>
-        <button className="bg-green-500 text-white px-3 py-1 rounded" onClick={exportExcel}>چاپ Excel</button>
-        <button className="bg-gray-500 text-white px-3 py-1 rounded" onClick={onClose}>بستن</button>
+        {/* معلومات شخصی - دو ردیف منظم (هر ردیف 3 ستون) */}
+        <table className="info-table" aria-label="معلومات دستیار">
+          <tbody>
+            <tr>
+              <td>
+                <span className="info-label">نام</span>
+                <div className="info-value">{form.personalInfo?.residentName || ""}</div>
+              </td>
+              <td>
+                <span className="info-label">ولد</span>
+                <div className="info-value">{form.personalInfo?.fatherName || ""}</div>
+              </td>
+              <td>
+                <span className="info-label">سال تریننگ</span>
+                <div className="info-value">{form.personalInfo?.trainingYear || ""}</div>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <span className="info-label">سال</span>
+                <div className="info-value">{form.personalInfo?.year || ""}</div>
+              </td>
+              <td>
+                <span className="info-label">دیپارتمنت</span>
+                <div className="info-value">{form.personalInfo?.department || ""}</div>
+              </td>
+              <td>
+                <span className="info-label">&nbsp;</span>
+                <div className="info-value">&nbsp;</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* جدول نمرات */}
+        <table className="form-table" aria-label="جدول نمرات">
+          <thead>
+            <tr>
+              <th rowSpan={2} style={{ width: "6%" }}>شماره</th>
+              <th colSpan={2} style={{ width: "18%" }}>امتحان چهار ماه اول</th>
+              <th colSpan={2} style={{ width: "18%" }}>امتحان چهار ماه دوم</th>
+              <th colSpan={2} style={{ width: "18%" }}>امتحان نهایی</th>
+              <th rowSpan={2} style={{ width: "10%" }}>مجموع</th>
+              <th rowSpan={2} style={{ width: "12%" }}>نام استاد</th>
+              <th rowSpan={2} style={{ width: "12%" }}>امضای استاد</th>
+            </tr>
+            <tr>
+              <th style={{ width: "9%" }}>تحریری</th>
+              <th style={{ width: "9%" }}>عملی</th>
+              <th style={{ width: "9%" }}>تحریری</th>
+              <th style={{ width: "9%" }}>عملی</th>
+              <th style={{ width: "9%" }}>تحریری</th>
+              <th style={{ width: "9%" }}>عملی</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(form.scores || []).map((row: any, idx: number) => (
+              <tr key={idx}>
+                <td>{idx + 1}</td>
+                <td>{row?.exam1Written ?? ""}</td>
+                <td>{row?.exam1Practical ?? ""}</td>
+                <td>{row?.exam2Written ?? ""}</td>
+                <td>{row?.exam2Practical ?? ""}</td>
+                <td>{row?.finalWritten ?? ""}</td>
+                <td>{row?.finalPractical ?? ""}</td>
+                <td>{row?.total ?? ""}</td>
+                <td>{row?.teacherName ?? ""}</td>
+                <td className="signature-cell">{emptySignatures[idx] ?? ""}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* ردیف نهایی امضاها */}
+        <table className="sign-table" aria-label="امضاها">
+          <thead>
+            <tr>
+              <th>شف دیپارتمنت</th>
+              <th>آمر پروگرام تریننگ</th>
+              <th>ریس شفاخانه</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="final-sign">
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      {/* دکمه‌ها (بیرون از بخش پرینت) */}
+      <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
+        <button onClick={exportExcel} style={{ background: "#16a34a", color: "#fff", padding: "8px 12px", borderRadius: 6 }}>
+          خروجی Excel
+        </button>
+        <button onClick={handlePrint} style={{ background: "#2563eb", color: "#fff", padding: "8px 12px", borderRadius: 6 }}>
+          چاپ / پرینت
+        </button>
+        <button onClick={onClose} style={{ background: "#6b7280", color: "#fff", padding: "8px 12px", borderRadius: 6 }}>
+          بستن
+        </button>
       </div>
     </div>
   );
 }
+

@@ -1,7 +1,7 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { X } from "lucide-react"; // آیکن ضربدر برای بستن
-
+import { useTrainer } from "@/context/TrainerContext"; // hook context
 // A clean, readable Trainer Registration form in TSX using TailwindCSS + react-hook-form
 // Usage: import TrainerRegistrationForm from './TrainerRegistrationForm';
 // Dependencies: react, react-dom, react-hook-form, tailwindcss (optional)
@@ -68,14 +68,13 @@ export default function TrainerRegistrationForm({
       status: "",
     },
   });
+  const { setTrainerId } = useTrainer(); // دسترسی به setter context
 
   const onSubmit = async (data: FormValues) => {
     try {
       const response = await fetch("/api/trainers", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
@@ -86,9 +85,20 @@ export default function TrainerRegistrationForm({
       }
 
       const savedTrainer = await response.json();
+      console.log("Saved trainer:", savedTrainer); // 🔴 اینو اضافه کن
+
+      // 👇 مطمئن شو فیلد درست را می‌گیری
+      const trainerId = savedTrainer?._id ?? savedTrainer?.id;
+
+      if (!trainerId) {
+        alert("API آیدی برنگرداند!");
+        return;
+      }
+
+      setTrainerId(trainerId);
       alert("ترینر با موفقیت ثبت شد!");
       reset();
-      onClose(); // فرم بسته شود
+      onClose();
     } catch (error) {
       console.error(error);
       alert("خطا در ثبت فرم، دوباره تلاش کنید.");

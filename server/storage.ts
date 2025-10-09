@@ -1,4 +1,5 @@
-import { UserModel, ResidentModel, TeacherModel } from "./models";
+
+import { UserModel, TeacherModel, ResidentModel } from "./models";
 import {
   type User,
   type UpsertUser,

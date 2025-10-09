@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTrainer } from "@/context/TrainerContext"; // ✅ اضافه شد
 
 const teacherActivities: Record<string, string[]> = {
   "آغاز فعالیت": ["Uniform", "Salam", "Introduction", "Patient add"],
@@ -40,7 +41,8 @@ const TeacherActivityForm: React.FC = () => {
       }))
     )
   );
-
+  // ✅ گرفتن trainerId از Context
+  const { trainerId } = useTrainer();
   const handleTeacherName = (index: number, value: string) => {
     setTeachers((prev) => prev.map((t, i) => (i === index ? value : t)));
   };
@@ -75,7 +77,13 @@ const TeacherActivityForm: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = { teachers, activities: data };
+
+    if (!trainerId) {
+      alert("ابتدا باید یک ترینر ثبت شود!");
+      return;
+    }
+
+    const payload = { trainerId, teachers, activities: data };
 
     try {
       const res = await fetch("http://localhost:5000/api/teacher-activities", {
@@ -83,10 +91,24 @@ const TeacherActivityForm: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
+
       if (!res.ok) throw new Error("Failed to save");
+
       const result = await res.json();
       console.log("Saved:", result);
       alert("فرم با موفقیت ذخیره شد ✅");
+
+      // ریست فرم
+      setTeachers(Array(5).fill(""));
+      setData(
+        Object.entries(teacherActivities).flatMap(([section, items]) =>
+          items.map((item) => ({
+            section,
+            activity: item,
+            evaluators: Array(5).fill(false),
+          }))
+        )
+      );
     } catch (err) {
       console.error(err);
       alert("خطا در ذخیره داده ❌");

@@ -1,20 +1,15 @@
-// routes/monographEvaluation.ts
 import { Router } from "express";
 import {
   createMonographEvaluation,
   getMonographEvaluations,
-} from "../controllers/form-K"; // <-- مطمئن شو مسیر صحیح است
+} from "../controllers/form-K";
 
 const router = Router();
 
-router.post("/", (req, res, next) => {
-  console.log("[route] POST /api/monographEvaluation", Object.keys(req.body).length ? "body present" : "no body");
-  return createMonographEvaluation(req, res).catch(next);
-});
+// ایجاد فرم جدید
+router.post("/", createMonographEvaluation);
 
-router.get("/", (req, res, next) => {
-  console.log("[route] GET /api/monographEvaluation");
-  return getMonographEvaluations(req, res).catch(next);
-});
+// گرفتن فرم‌ها (اختیاری بر اساس trainerId)
+router.get("/", getMonographEvaluations);
 
 export default router;

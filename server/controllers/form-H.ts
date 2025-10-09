@@ -1,4 +1,3 @@
-// controllers/form-H.ts
 import { Request, Response } from "express";
 import { EvaluationFormH } from "../models/form-H";
 
@@ -6,7 +5,14 @@ import { EvaluationFormH } from "../models/form-H";
 export const createEvaluationFormH = async (req: Request, res: Response) => {
   try {
     const form = new EvaluationFormH({
-      ...req.body, // studentId را هم می‌گیرد
+      trainer: req.body.trainer, // ⬅️ از فرانت می‌آید
+      residentName: req.body.residentName,
+      fatherName: req.body.fatherName,
+      department: req.body.department,
+      trainingYears: req.body.trainingYears,
+      averageScore: req.body.averageScore,
+      shiftDepartment: req.body.shiftDepartment,
+      programDirector: req.body.programDirector,
     });
 
     await form.save();
@@ -16,10 +22,12 @@ export const createEvaluationFormH = async (req: Request, res: Response) => {
   }
 };
 
-// گرفتن تمام فرم‌ها (بدون نیاز به آیدی)
+// گرفتن فرم‌ها بر اساس trainerId
 export const getEvaluationFormsH = async (req: Request, res: Response) => {
   try {
-    const forms = await EvaluationFormH.find().populate("studentId");
+    const { trainerId } = req.query; // ?trainerId=xxxx
+    const filter = trainerId ? { trainer: trainerId } : {};
+    const forms = await EvaluationFormH.find(filter).populate("trainer");
     res.json(forms);
   } catch (error) {
     res.status(500).json({ message: "خطا در گرفتن فرم‌ها", error });

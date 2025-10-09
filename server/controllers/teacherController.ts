@@ -23,8 +23,8 @@ const createTeacherSchema = z.object({
   emailAddress: z.string().email("Valid email is required"),
   postCode: z.string().min(1, "Post code is required"),
   appointmentType: z.string().min(1, "Appointment type is required"),
-  department: z.string().min(1, "Department is required"),
-  experience: z.number().min(0, "Experience must be non-negative"),
+  // department: z.string().min(1, "Department is required"),
+  // experience: z.number().min(0, "Experience must be non-negative"),
   status: z.string().optional().default("active"),
   profileImageUrl: z.string().optional(),
 });

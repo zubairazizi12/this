@@ -48,8 +48,8 @@ export default function TeacherFormDialog({
       emailAddress: "",
       postCode: "",
       appointmentType: "",
-      department: "",
-      experience: 0,
+      // department: "",
+      // experience: 0,
       status: "active",
       profileImageUrl: "",
     },
@@ -81,8 +81,8 @@ export default function TeacherFormDialog({
           emailAddress: defaultValues.emailAddress || "",
           postCode: defaultValues.postCode || "",
           appointmentType: defaultValues.appointmentType || "",
-          department: defaultValues.department || "",
-          experience: defaultValues.experience || 0,
+          // department: defaultValues.department || "",
+          // experience: defaultValues.experience || 0,
           status: defaultValues.status || "active",
           profileImageUrl: defaultValues.profileImageUrl || "",
         });
@@ -109,8 +109,8 @@ export default function TeacherFormDialog({
           emailAddress: "",
           postCode: "",
           appointmentType: "",
-          department: "",
-          experience: 0,
+          // department: "",
+          // experience: 0,
           status: "active",
           profileImageUrl: "",
         });
@@ -439,7 +439,7 @@ export default function TeacherFormDialog({
 </div>
 
 
-              <div>
+              {/* <div>
                 <Label htmlFor="department">ریاست</Label>
                 <Input
                   id="department"
@@ -449,9 +449,9 @@ export default function TeacherFormDialog({
                 {form.formState.errors.department && (
                   <p className="text-red-500 text-sm mt-1">{form.formState.errors.department.message}</p>
                 )}
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <Label htmlFor="experience">سابقه کار (سال)</Label>
                 <Input
                   id="experience"
@@ -462,7 +462,7 @@ export default function TeacherFormDialog({
                 {form.formState.errors.experience && (
                   <p className="text-red-500 text-sm mt-1">{form.formState.errors.experience.message}</p>
                 )}
-              </div>
+              </div> */}
 
               <div>
               <Label htmlFor="status">وضعیت فعلی</Label>

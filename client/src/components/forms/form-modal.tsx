@@ -47,9 +47,12 @@ const FORM_TITLES: Record<string, string> = {
   K: "Final Competency Evaluation",
 };
 
+import { useTrainer } from "@/context/TrainerContext";
+
 export default function FormModal({ form, onClose }: FormModalProps) {
   if (!form) return null; // ← اینجا اضافه کنید
   const { user } = useAuth();
+  const { trainerId } = useTrainer(); // 👈 اینجا trainerId گرفتیم
   const [formData, setFormData] = useState((form.formData as any) || {});
 
   const isReadOnly = user?.role !== "admin";

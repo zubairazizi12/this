@@ -14,30 +14,24 @@ export interface IMonographEvaluationForm extends Document {
   departmentHead: string;
   hospitalHead: string;
   evaluations: {
-    section: string;
-    percentage: string;
-    score: string;
-    teacherName: string;
-    teacherSigned: boolean;
-    characteristics: string;
-    total: string;
-    finalResult: string;
+    section: string;     // نام بخش مثل نمره سیکل، مجموع نمرات ...
+    percentage: string;  // فیصدی
+    score: string;       // نمره
+    teacherName: string; // نام استاد
   }[];
   createdAt: Date;
   updatedAt: Date;
 }
 
+// اسکیمای هر آیتم ارزیابی
 const MonographEvaluationItemSchema: Schema = new Schema({
   section: { type: String, required: true },
   percentage: { type: String, required: true },
   score: { type: String, required: true },
   teacherName: { type: String, required: true },
-  teacherSigned: { type: Boolean, default: false },
-  characteristics: { type: String, default: "" },
-  total: { type: String, required: true },
-  finalResult: { type: String, required: true }
 });
 
+// اسکیمای اصلی فرم
 const MonographEvaluationFormSchema: Schema = new Schema(
   {
     name: { type: String, required: true },
@@ -51,10 +45,10 @@ const MonographEvaluationFormSchema: Schema = new Schema(
     chef: { type: String, required: true },
     departmentHead: { type: String, required: true },
     hospitalHead: { type: String, required: true },
-    evaluations: [MonographEvaluationItemSchema]
+    evaluations: [MonographEvaluationItemSchema], // آرایه ارزیابی‌ها
   },
   {
-    timestamps: true
+    timestamps: true, // createdAt و updatedAt اتوماتیک
   }
 );
 

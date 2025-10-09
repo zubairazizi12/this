@@ -1,4 +1,3 @@
-// routes/form-H.ts
 import { Router } from "express";
 import {
   createEvaluationFormH,
@@ -7,10 +6,9 @@ import {
 
 const router = Router();
 
-// ایجاد فرم جدید
 router.post("/", createEvaluationFormH);
 
-// گرفتن همه فرم‌ها
+// گرفتن فرم‌ها (همه یا بر اساس trainerId)
 router.get("/", getEvaluationFormsH);
 
 export default router;

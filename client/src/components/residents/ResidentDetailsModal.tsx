@@ -26,11 +26,11 @@ export default function TrainerDetailsModal({
       <DialogContent
         className="
            w-[80%] h-screen max-w-none max-h-none 
-    mt-2 mx-auto    /* mt-2 فاصله کم از بالا / mx-auto وسط چین */
-    rounded-xl bg-white 
-    overflow-y-auto
-  "
-      >
+           mt-2 mx-auto    /* mt-2 فاصله کم از بالا / mx-auto وسط چین */
+            rounded-xl bg-white 
+           overflow-y-auto
+           "
+        >
         <DialogHeader>
           <DialogTitle>جزئیات ترینر</DialogTitle>
         </DialogHeader>

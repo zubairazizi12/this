@@ -93,8 +93,8 @@ export default function EditTeacherModal({ teacher, open, onClose, onSave }: Edi
           <InputItem label="ایمیل" value={formValues.emailAddress} onChange={val => handleChange("emailAddress", val)} />
           <InputItem label="کود پوست" value={formValues.postCode} onChange={val => handleChange("postCode", val)} />
           <InputItem label="نوع تقرری" value={formValues.appointmentType} onChange={val => handleChange("appointmentType", val)} />
-          <InputItem label="دیپارتمنت" value={formValues.department} onChange={val => handleChange("department", val)} />
-          <InputItem label="تجربه کاری" type="number" value={formValues.experience} onChange={val => handleChange("experience", val)} />
+          {/* <InputItem label="دیپارتمنت" value={formValues.department} onChange={val => handleChange("department", val)} /> */}
+          {/* <InputItem label="تجربه کاری" type="number" value={formValues.experience} onChange={val => handleChange("experience", val)} /> */}
           <div className="col-span-2 flex justify-end space-x-2 rtl:space-x-reverse mt-4">
             <Button type="button" variant="outline" onClick={onClose}>بستن</Button>
             <Button type="submit" variant="default">ذخیره</Button>

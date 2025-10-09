@@ -12,7 +12,11 @@ import Reports from "@/pages/reports";
 import NotFound from "@/pages/not-found";
 import  Setting  from "@/pages/setting";
 import  About  from "@/pages/about";
+//////////////////////////////////////
+ import { TrainerProvider } from "./context/TrainerContext"; // ✅ context اضافه شد
 
+
+/////////////////////////////////
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -40,12 +44,14 @@ function Router() {
 
 function App() {
   return (
+     <TrainerProvider>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
         <Router />
       </TooltipProvider>
     </QueryClientProvider>
+     </TrainerProvider>
   );
 }
 

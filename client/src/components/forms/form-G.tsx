@@ -1,89 +1,136 @@
 import React, { useState } from "react";
+import { useTrainer } from "@/context/TrainerContext";
+
+type Row = {
+  exam1Written: string;
+  exam1Practical: string;
+  exam2Written: string;
+  exam2Practical: string;
+  finalWritten: string;
+  finalPractical: string;
+  total: string;
+  teacherName: string;
+};
+
+type RowField = keyof Row;
 
 export default function EvaluationFormG() {
-  const [year, setYear] = useState("");
-  const [name, setName] = useState("");
-  const [fatherName, setFatherName] = useState("");
-  const [trainingYear, setTrainingYear] = useState("");
-  const [department, setDepartment] = useState("");
+  const { trainerId } = useTrainer();
 
-  const [exam1Written, setExam1Written] = useState("");
-  const [exam1Practical, setExam1Practical] = useState("");
-  const [exam2Written, setExam2Written] = useState("");
-  const [exam2Practical, setExam2Practical] = useState("");
-  const [finalWritten, setFinalWritten] = useState("");
-  const [finalPractical, setFinalPractical] = useState("");
+  // بخش معلومات شخصی
+  const [personalInfo, setPersonalInfo] = useState({
+    residentName: "",
+    fatherName: "",
+    trainingYear: "",
+    year: "",
+    department: "",
+  });
 
-  const [average, setAverage] = useState("");
-  const [teacherName, setTeacherName] = useState("");
-  const [teacherSigned, setTeacherSigned] = useState(false);
-  const [departmentHead, setDepartmentHead] = useState("");
-  const [programHead, setProgramHead] = useState("");
-  const [hospitalHead, setHospitalHead] = useState("");
+  const [rows, setRows] = useState<Row[]>(
+    Array.from({ length: 6 }, () => ({
+      exam1Written: "",
+      exam1Practical: "",
+      exam2Written: "",
+      exam2Practical: "",
+      finalWritten: "",
+      finalPractical: "",
+      total: "",
+      teacherName: "",
+    }))
+  );
 
-  const inputClass = "border rounded px-2 py-2 w-full text-center";
+  const inputClass = "border px-2 py-2 w-full text-center";
 
-  // محاسبه مجموع
-  const total =
-    (Number(exam1Written) || 0) +
-    (Number(exam1Practical) || 0) +
-    (Number(exam2Written) || 0) +
-    (Number(exam2Practical) || 0) +
-    (Number(finalWritten) || 0) +
-    (Number(finalPractical) || 0);
+  const handleChangeRow = (index: number, field: RowField, value: string) => {
+    const newRows = [...rows];
+    newRows[index][field] = value;
 
-  // تابع ثبت فرم
+    // محاسبه مجموع برای ردیف 1 تا 5
+    if (index < 5) {
+      const total =
+        (Number(newRows[index].exam1Written) || 0) +
+        (Number(newRows[index].exam1Practical) || 0) +
+        (Number(newRows[index].exam2Written) || 0) +
+        (Number(newRows[index].exam2Practical) || 0) +
+        (Number(newRows[index].finalWritten) || 0) +
+        (Number(newRows[index].finalPractical) || 0);
+      newRows[index].total = total.toString();
+    }
+
+    setRows(newRows);
+  };
+
+  const handleChangePersonal = (
+    field: keyof typeof personalInfo,
+    value: string
+  ) => {
+    setPersonalInfo({ ...personalInfo, [field]: value });
+  };
+
   const handleSubmit = async () => {
+    if (!trainerId) {
+      alert("خطا: شناسه ترینر موجود نیست!");
+      return;
+    }
+
+    // محاسبه اوسط ردیف ششم
+    const filledRows = rows.slice(0, 5);
+    const avg = (field: keyof Row) => {
+      const vals = filledRows.map((r) => Number(r[field]) || 0);
+      return (vals.reduce((a, b) => a + b, 0) / filledRows.length).toFixed(2);
+    };
+
+    const newRows = [...rows];
+    newRows[5] = {
+      exam1Written: avg("exam1Written"),
+      exam1Practical: avg("exam1Practical"),
+      exam2Written: avg("exam2Written"),
+      exam2Practical: avg("exam2Practical"),
+      finalWritten: avg("finalWritten"),
+      finalPractical: avg("finalPractical"),
+      total: (
+        filledRows.reduce((sum, r) => sum + (Number(r.total) || 0), 0) /
+        filledRows.length
+      ).toFixed(2),
+      teacherName: "",
+    };
+
+    setRows(newRows);
+
     try {
       const res = await fetch("http://localhost:5000/api/evaluationFormG", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          year,
-          name,
-          fatherName,
-          trainingYear,
-          department,
-          exam1Written: Number(exam1Written),
-          exam1Practical: Number(exam1Practical),
-          exam2Written: Number(exam2Written),
-          exam2Practical: Number(exam2Practical),
-          finalWritten: Number(finalWritten),
-          finalPractical: Number(finalPractical),
-          total,
-          average,
-          teacherName,
-          teacherSigned,
-          departmentHead,
-          programHead,
-          hospitalHead,
+          trainerId,
+          personalInfo,
+          scores: newRows,
         }),
       });
 
       if (!res.ok) throw new Error("خطا در ذخیره فرم");
 
-      const data = await res.json();
-      console.log("فرم ذخیره شد:", data);
       alert("فرم با موفقیت ذخیره شد!");
-
-      // ریست کردن تمام فیلدها
-      setYear("");
-      setName("");
-      setFatherName("");
-      setTrainingYear("");
-      setDepartment("");
-      setExam1Written("");
-      setExam1Practical("");
-      setExam2Written("");
-      setExam2Practical("");
-      setFinalWritten("");
-      setFinalPractical("");
-      setAverage("");
-      setTeacherName("");
-      setTeacherSigned(false);
-      setDepartmentHead("");
-      setProgramHead("");
-      setHospitalHead("");
+      // ⚡ پاک کردن فیلدها بعد از ذخیره
+      setPersonalInfo({
+        residentName: "",
+        fatherName: "",
+        trainingYear: "",
+        year: "",
+        department: "",
+      });
+      setRows(
+        Array.from({ length: 6 }, () => ({
+          exam1Written: "",
+          exam1Practical: "",
+          exam2Written: "",
+          exam2Practical: "",
+          finalWritten: "",
+          finalPractical: "",
+          total: "",
+          teacherName: "",
+        }))
+      );
     } catch (err) {
       console.error(err);
       alert("خطا در ذخیره فرم");
@@ -91,214 +138,227 @@ export default function EvaluationFormG() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-2xl p-6 mt-6">
+    <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-2xl p-6 mt-6">
       <h2 className="text-xl font-bold text-center mb-4">
-        فرم ارزشیابی دستیار
+        فورم ارزیابی دستیار
       </h2>
 
-      {/* اطلاعات فردی */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label className="block mb-1 font-medium">سال</label>
-          <input
-            type="text"
-            placeholder="سال"
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">اسم</label>
-          <input
-            type="text"
-            placeholder="اسم"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">ولد</label>
-          <input
-            type="text"
-            placeholder="ولد"
-            value={fatherName}
-            onChange={(e) => setFatherName(e.target.value)}
-            className={inputClass}
-          />
-        </div>
+      {/* بخش معلومات شخصی */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <input
+          type="text"
+          placeholder="نام"
+          value={personalInfo.residentName}
+          onChange={(e) => handleChangePersonal("residentName", e.target.value)}
+          className={inputClass}
+        />
+        <input
+          type="text"
+          placeholder="ولد"
+          value={personalInfo.fatherName}
+          onChange={(e) => handleChangePersonal("fatherName", e.target.value)}
+          className={inputClass}
+        />
+        <input
+          type="text"
+          placeholder="سال تریننگ"
+          value={personalInfo.trainingYear}
+          onChange={(e) => handleChangePersonal("trainingYear", e.target.value)}
+          className={inputClass}
+        />
+        <input
+          type="text"
+          placeholder="سال"
+          value={personalInfo.year}
+          onChange={(e) => handleChangePersonal("year", e.target.value)}
+          className={inputClass}
+        />
+        <input
+          type="text"
+          placeholder="دیپارتمنت"
+          value={personalInfo.department}
+          onChange={(e) => handleChangePersonal("department", e.target.value)}
+          className={inputClass}
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label className="block mb-1 font-medium">سال تریننگ</label>
-          <input
-            type="text"
-            placeholder="سال تریننگ"
-            value={trainingYear}
-            onChange={(e) => setTrainingYear(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">دیپارتمنت</label>
-          <input
-            type="text"
-            placeholder="دیپارتمنت"
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-      </div>
+      {/* جدول نمرات */}
+      <table className="table-auto border-collapse border w-full text-center">
+        <thead>
+          <tr>
+            <th rowSpan={2} className="border px-2 py-4">
+              شماره
+            </th>
+            <th colSpan={2} className="border px-2 py-2">
+              امتحان چهار ماه اول
+            </th>
+            <th colSpan={2} className="border px-2 py-2">
+              امتحان چهار ماه دوم
+            </th>
+            <th colSpan={2} className="border px-2 py-2">
+              امتحان نهایی
+            </th>
+            <th rowSpan={2} className="border px-2 py-4">
+              مجموع
+            </th>
+            <th rowSpan={2} className="border px-2 py-4">
+              نام استاد
+            </th>
+          </tr>
+          <tr>
+            <th className="border px-2 py-2">تحریری</th>
+            <th className="border px-2 py-2">عملی</th>
+            <th className="border px-2 py-2">تحریری</th>
+            <th className="border px-2 py-2">عملی</th>
+            <th className="border px-2 py-2">تحریری</th>
+            <th className="border px-2 py-2">عملی</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.slice(0, 5).map((row, idx) => (
+            <tr key={idx}>
+              <td className="border px-2 py-4">{idx + 1}</td>
+              <td>
+                <input
+                  type="number"
+                  value={row.exam1Written}
+                  onChange={(e) =>
+                    handleChangeRow(idx, "exam1Written", e.target.value)
+                  }
+                  className={inputClass}
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  value={row.exam1Practical}
+                  onChange={(e) =>
+                    handleChangeRow(idx, "exam1Practical", e.target.value)
+                  }
+                  className={inputClass}
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  value={row.exam2Written}
+                  onChange={(e) =>
+                    handleChangeRow(idx, "exam2Written", e.target.value)
+                  }
+                  className={inputClass}
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  value={row.exam2Practical}
+                  onChange={(e) =>
+                    handleChangeRow(idx, "exam2Practical", e.target.value)
+                  }
+                  className={inputClass}
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  value={row.finalWritten}
+                  onChange={(e) =>
+                    handleChangeRow(idx, "finalWritten", e.target.value)
+                  }
+                  className={inputClass}
+                />
+              </td>
+              <td>
+                <input
+                  type="number"
+                  value={row.finalPractical}
+                  onChange={(e) =>
+                    handleChangeRow(idx, "finalPractical", e.target.value)
+                  }
+                  className={inputClass}
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  value={row.total}
+                  readOnly
+                  className={inputClass + " bg-gray-100"}
+                />
+              </td>
+              <td>
+                <input
+                  type="text"
+                  value={row.teacherName}
+                  onChange={(e) =>
+                    handleChangeRow(idx, "teacherName", e.target.value)
+                  }
+                  className={inputClass}
+                />
+              </td>
+            </tr>
+          ))}
 
-      {/* نمرات */}
-      <h3 className="text-lg font-semibold mb-2">نمرات</h3>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label className="block mb-1 font-medium">۴ ماه اول تحریری</label>
-          <input
-            type="number"
-            value={exam1Written}
-            onChange={(e) => setExam1Written(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">۴ ماه اول عملی</label>
-          <input
-            type="number"
-            value={exam1Practical}
-            onChange={(e) => setExam1Practical(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-      </div>
+          {/* ردیف ششم - merge ستون‌ها */}
+          <tr>
+            <td className="border px-2 py-4">6</td>
+            <td colSpan={2}>
+              <input
+                type="text"
+                value={rows[5].exam1Written}
+                placeholder="اوسط نمرات"
+                onChange={(e) =>
+                  handleChangeRow(5, "exam1Written", e.target.value)
+                }
+                className={inputClass}
+              />
+            </td>
+            <td colSpan={2}>
+              <input
+                type="text"
+                value={rows[5].exam2Written}
+                placeholder="اوسط نمرات"
+                onChange={(e) =>
+                  handleChangeRow(5, "exam2Written", e.target.value)
+                }
+                className={inputClass}
+              />
+            </td>
+            <td colSpan={2}>
+              <input
+                type="text"
+                value={rows[5].finalWritten}
+                placeholder="اوسط نمرات"
+                onChange={(e) =>
+                  handleChangeRow(5, "finalWritten", e.target.value)
+                }
+                className={inputClass}
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                value={rows[5].total}
+                placeholder="مجموعه"
+                onChange={(e) => handleChangeRow(5, "total", e.target.value)}
+                className={inputClass}
+              />
+            </td>
+            <td>
+              <input
+                type="text"
+                value={rows[5].teacherName}
+                placeholder=""
+                onChange={(e) =>
+                  handleChangeRow(5, "teacherName", e.target.value)
+                }
+                className={inputClass}
+              />
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label className="block mb-1 font-medium">۴ ماه دوم تحریری</label>
-          <input
-            type="number"
-            value={exam2Written}
-            onChange={(e) => setExam2Written(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">۴ ماه دوم عملی</label>
-          <input
-            type="number"
-            value={exam2Practical}
-            onChange={(e) => setExam2Practical(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label className="block mb-1 font-medium">نهایی تحریری</label>
-          <input
-            type="number"
-            value={finalWritten}
-            onChange={(e) => setFinalWritten(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">نهایی عملی</label>
-          <input
-            type="number"
-            value={finalPractical}
-            onChange={(e) => setFinalPractical(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-      </div>
-
-      {/* مجموع */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label className="block mb-1 font-medium">مجموع نمرات</label>
-          <input
-            type="number"
-            readOnly
-            value={total}
-            className={inputClass + " bg-gray-100"}
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">اوسط نمرات</label>
-          <input
-            type="text"
-            placeholder="اوسط نمرات"
-            value={average}
-            onChange={(e) => setAverage(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-      </div>
-
-      {/* استاد */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label className="block mb-1 font-medium">نام استاد</label>
-          <input
-            type="text"
-            placeholder="نام استاد"
-            value={teacherName}
-            onChange={(e) => setTeacherName(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-        <div className="flex items-center mt-6">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={teacherSigned}
-              onChange={(e) => setTeacherSigned(e.target.checked)}
-            />
-            امضای استاد
-          </label>
-        </div>
-      </div>
-
-      {/* امضاها */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label className="block mb-1 font-medium">شف دیپارتمنت</label>
-          <input
-            type="text"
-            placeholder="شف دیپارتمنت"
-            value={departmentHead}
-            onChange={(e) => setDepartmentHead(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">آمر پروگرام تریننگ</label>
-          <input
-            type="text"
-            placeholder="آمر پروگرام تریننگ"
-            value={programHead}
-            onChange={(e) => setProgramHead(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">ریس شفاخانه</label>
-          <input
-            type="text"
-            placeholder="ریس شفاخانه"
-            value={hospitalHead}
-            onChange={(e) => setHospitalHead(e.target.value)}
-            className={inputClass}
-          />
-        </div>
-      </div>
-      {/* دکمه ثبت */}
       <div className="text-center mt-6">
         <button
           onClick={handleSubmit}

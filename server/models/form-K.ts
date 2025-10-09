@@ -1,8 +1,21 @@
-// models/monographEvaluation.ts
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
+// این همان ساختار هر سطر ارزیابی مونوگراف است
+export interface IMonographRow {
+  section: string;
+  percentage: string;
+  score: string;
+  teacherName: string;
+  teacherSigned: boolean;
+  characteristics: string;
+  total: string;
+  average: string;
+  notes: string;
+}
+
+// ساختار کامل فرم
 export interface IMonographEvaluation extends Document {
-  studentId: mongoose.Types.ObjectId;
+  trainer: Types.ObjectId; // رفرنس به جدول Trainer
   name: string;
   lastName: string;
   fatherName: string;
@@ -11,60 +24,33 @@ export interface IMonographEvaluation extends Document {
   trainingYear: string;
   startYear: string;
   date: string;
-  evaluations: {
-    section: string;
-    writingStyle: string;
-    presentation: string;
-    answersToQuestions: string;
-    defense: string;
-    answersToAdditional: string;
-    percentage: string;
-    score: string;
-    teacherName: string;
-    teacherSigned: boolean;
-    characteristics: string;
-    total: string;
-    average: string;
-  }[];
+  evaluations: IMonographRow[];
 }
 
-const EvaluationItemSchema = new Schema(
-  {
-    section: String,
-    writingStyle: String,
-    presentation: String,
-    answersToQuestions: String,
-    defense: String,
-    answersToAdditional: String,
-    percentage: String,
-    score: String,
-    teacherName: String,
-    teacherSigned: Boolean,
-    characteristics: String,
-    total: String,
-    average: String,
-  },
-  { _id: false }
-);
+const MonographRowSchema: Schema = new Schema({
+  section: { type: String, required: true },
+  percentage: { type: String, default: "" },
+  score: { type: String, default: "" },
+  teacherName: { type: String, default: "" },
+  teacherSigned: { type: Boolean, default: false },
+  characteristics: { type: String, default: "" },
+  total: { type: String, default: "" },
+  average: { type: String, default: "" },
+  notes: { type: String, default: "" },
+});
 
-const MonographEvaluationSchema = new Schema(
-  {
-    studentId: {
-      type: Schema.Types.ObjectId,
-      ref: "Resident",
-    },
-    name: String,
-    lastName: String,
-    fatherName: String,
-    idNumber: String,
-    field: String,
-    trainingYear: String,
-    startYear: String,
-    date: String,
-    evaluations: [EvaluationItemSchema],
-  },
-  { timestamps: true }
-);
+const MonographEvaluationSchema: Schema = new Schema({
+  trainer: { type: Schema.Types.ObjectId, ref: "Trainer", required: true },
+  name: { type: String, required: true },
+  lastName: { type: String, required: true },
+  fatherName: { type: String, required: true },
+  idNumber: { type: String, default: "" },
+  field: { type: String, default: "" },
+  trainingYear: { type: String, default: "" },
+  startYear: { type: String, default: "" },
+  date: { type: String, default: "" },
+  evaluations: { type: [MonographRowSchema], default: [] },
+}, { timestamps: true });
 
 export const MonographEvaluation = mongoose.model<IMonographEvaluation>(
   "MonographEvaluation",

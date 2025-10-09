@@ -7,7 +7,7 @@ export default function Reports() {
     <div className="min-h-screen bg-slate-50">
       <Header />
       <Sidebar />
-      <div className="mr-64 pt-20 p-6">
+      <div className="mr-64 p-6">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-slate-200 -m-6 mb-6">
         <div className="px-6 py-4">

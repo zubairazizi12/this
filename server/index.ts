@@ -8,7 +8,8 @@ import evaluationFormERoutes from "./routes/form-E";
 import evaluationFormGRoutes from "./routes/form-G";
 import formHRoutes from "./routes/form-H";
 import monographEvaluationRoutes from "./routes/form-k";
-
+import rotationFormRoutes from "./routes/form-I";
+import { teacherActivityRoutes } from "./routes/form-J";
 const app = express();
 
 // Parsers
@@ -22,6 +23,8 @@ app.use("/api/evaluationFormE", evaluationFormERoutes);
 app.use("/api/evaluationFormH", formHRoutes);
 app.use("/api/evaluationFormG", evaluationFormGRoutes);
 app.use("/api/monographEvaluation", monographEvaluationRoutes);
+app.use("/api/rotation-form", rotationFormRoutes);
+app.use("/api/teacher-activities", teacherActivityRoutes);
 
 // Logging middleware for API responses
 app.use((req, res, next) => {

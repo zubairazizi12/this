@@ -1,69 +1,45 @@
 import { Request, Response } from "express";
 import { EvaluationFormG } from "../models/form-G";
 
-// ایجاد فرم جدید بدون نیاز به residentId
+// ذخیره فرم جدید
 export const createEvaluationFormG = async (req: Request, res: Response) => {
   try {
+    const { trainerId, personalInfo, scores } = req.body;
+
+    if (!trainerId) return res.status(400).json({ message: "شناسه ترینر الزامی است." });
+    if (!personalInfo || !scores) return res.status(400).json({ message: "اطلاعات کامل فرم الزامی است." });
+
+    // محاسبه میانگین کل (averageScore)
+    const filledRows = scores.slice(0, 5);
+    const totalSum = filledRows.reduce((sum: number, row: any) => sum + (Number(row.total) || 0), 0);
+    const averageScore = totalSum / filledRows.length;
+
     const form = new EvaluationFormG({
-      ...req.body,
-      total:
-        (Number(req.body.exam1Written) || 0) +
-        (Number(req.body.exam1Practical) || 0) +
-        (Number(req.body.exam2Written) || 0) +
-        (Number(req.body.exam2Practical) || 0) +
-        (Number(req.body.finalWritten) || 0) +
-        (Number(req.body.finalPractical) || 0),
+      trainer: trainerId,
+      personalInfo,
+      scores,
+      averageScore,
     });
 
     await form.save();
-    res.status(201).json(form);
-  } catch (error) {
-    res.status(400).json({ message: "خطا در ایجاد فرم", error });
+    res.status(201).json({ message: "فرم با موفقیت ذخیره شد", form });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "خطا در ذخیره فرم", error: err });
   }
 };
 
-// گرفتن تمام فرم‌ها
-export const getEvaluationFormsG = async (req: Request, res: Response) => {
+// دریافت فرم‌ها بر اساس trainerId
+export const getEvaluationFormsByTrainer = async (req: Request, res: Response) => {
   try {
-    const forms = await EvaluationFormG.find();
-    res.json(forms);
-  } catch (error) {
-    res.status(500).json({ message: "خطا در گرفتن فرم‌ها", error });
-  }
-};
+    const { trainerId } = req.params;
 
-// گرفتن فرم با ID
-export const getEvaluationFormGById = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const form = await EvaluationFormG.findById(id);
-    if (!form) return res.status(404).json({ message: "فرم پیدا نشد" });
-    res.json(form);
-  } catch (error) {
-    res.status(500).json({ message: "خطا در گرفتن فرم", error });
-  }
-};
+    if (!trainerId) return res.status(400).json({ message: "شناسه ترینر الزامی است." });
 
-// آپدیت فرم
-export const updateEvaluationFormG = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const updated = await EvaluationFormG.findByIdAndUpdate(id, req.body, { new: true });
-    if (!updated) return res.status(404).json({ message: "فرم پیدا نشد" });
-    res.json(updated);
-  } catch (error) {
-    res.status(400).json({ message: "خطا در آپدیت فرم", error });
-  }
-};
-
-// حذف فرم
-export const deleteEvaluationFormG = async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const deleted = await EvaluationFormG.findByIdAndDelete(id);
-    if (!deleted) return res.status(404).json({ message: "فرم پیدا نشد" });
-    res.json({ message: "فرم حذف شد" });
-  } catch (error) {
-    res.status(500).json({ message: "خطا در حذف فرم", error });
+    const forms = await EvaluationFormG.find({ trainer: trainerId }).sort({ createdAt: -1 });
+    res.status(200).json(forms);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "خطا در دریافت فرم‌ها", error: err });
   }
 };

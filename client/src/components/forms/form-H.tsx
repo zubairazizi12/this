@@ -1,61 +1,67 @@
 import React, { useState } from "react";
-
+import { useTrainer } from "@/context/TrainerContext"; // ✅ اضافه شد
 export default function EvaluationFormHStyled() {
-  const [yearInput, setYearInput] = useState("");
+  // مشخصات فردی
   const [residentName, setResidentName] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [department, setDepartment] = useState("");
-  const [trainingYear, setTrainingYear] = useState("سال اول");
 
-  const [totalScore, setTotalScore] = useState<number | "">("");
-  const [averageScore, setAverageScore] = useState<number | "">("");
+  // آرایه سال‌ها
+  const [years, setYears] = useState([
+    { year: "سال اول", totalScore: "", instructor: "" },
+    { year: "سال دوم", totalScore: "", instructor: "" },
+    { year: "سال سوم", totalScore: "", instructor: "" },
+    { year: "سال چهارم", totalScore: "", instructor: "" },
+  ]);
 
-  const [instructorName, setInstructorName] = useState("");
-  const [instructorSigned, setInstructorSigned] = useState(false);
+  const [averageScore, setAverageScore] = useState("");
   const [shiftDepartment, setShiftDepartment] = useState("");
   const [programDirector, setProgramDirector] = useState("");
-  const [presidentSigned, setPresidentSigned] = useState(false);
+  // ✅ گرفتن trainerId از Context
+  const { trainerId } = useTrainer();
+
+  const handleYearChange = (index: number, field: string, value: string) => {
+    const updated = [...years];
+    (updated as any)[index][field] = value;
+    setYears(updated);
+  };
+
   const handleSubmit = async () => {
+    if (!trainerId) {
+      alert("ابتدا باید یک ترینر ثبت شود!");
+      return;
+    }
     try {
       const res = await fetch("http://localhost:5000/api/evaluationFormH", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // studentId: "64dfe...", // 👈 یک آی‌دی تستی از Resident اگر داری
-           year: yearInput,
+          trainer: trainerId, // ✅ از context گرفته شد
           residentName,
           fatherName,
           department,
-          trainingYear,
-          totalScore: Number(totalScore),
-          averageScore: Number(averageScore),
-          instructorName,
-          instructorSigned,
+          trainingYears: years,
+          averageScore,
           shiftDepartment,
           programDirector,
-          presidentSigned,
         }),
       });
-
       if (!res.ok) throw new Error("خطا در ذخیره فرم");
-
-      const data = await res.json();
-      console.log("فرم ذخیره شد:", data);
       alert("فرم با موفقیت ذخیره شد!");
 
-      // 👇 ریست کردن همه فیلدها
-      setYearInput("");
+      // ریست کردن تمام فیلدها بعد از ذخیره
       setResidentName("");
       setFatherName("");
       setDepartment("");
-      setTrainingYear("سال اول");
-      setTotalScore("");
+      setYears([
+        { year: "سال اول", totalScore: "", instructor: "" },
+        { year: "سال دوم", totalScore: "", instructor: "" },
+        { year: "سال سوم", totalScore: "", instructor: "" },
+        { year: "سال چهارم", totalScore: "", instructor: "" },
+      ]);
       setAverageScore("");
-      setInstructorName("");
-      setInstructorSigned(false);
       setShiftDepartment("");
       setProgramDirector("");
-      setPresidentSigned(false);
     } catch (err) {
       console.error(err);
       alert("خطا در ذخیره فرم");
@@ -64,7 +70,7 @@ export default function EvaluationFormHStyled() {
 
   return (
     <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-2xl p-6 mt-6">
-      {/* بالای فرم */}
+      {/* عنوان و هدر */}
       <div className="text-center mb-2">
         <div className="mt-1 font-semibold">وزارت صحت عامه</div>
         <div className="font-semibold">معینیت اداری</div>
@@ -75,142 +81,109 @@ export default function EvaluationFormHStyled() {
         فرم مخصوص درج نمرات سال‌های دوران ترینینگ - شفاخانه ملی و تخصص چشم نور
       </div>
 
-      {/* اطلاعات اولیه و سال ترینی در سطر سه‌تایی */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label className="block mb-1 font-medium">سال</label>
-          <input
-            type="text"
-            placeholder="سال"
-            value={yearInput}
-            onChange={(e) => setYearInput(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full"
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">نام دستیار</label>
+      {/* بخش مشخصات */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium">نام دستیار</label>
           <input
             type="text"
             placeholder="نام دستیار"
             value={residentName}
             onChange={(e) => setResidentName(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full"
+            className="border rounded px-2 py-2 text-center w-full h-10"
           />
         </div>
-        <div>
-          <label className="block mb-1 font-medium">نام پدر</label>
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium">نام پدر</label>
           <input
             type="text"
             placeholder="نام پدر"
             value={fatherName}
             onChange={(e) => setFatherName(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full"
+            className="border rounded px-2 py-2 text-center w-full h-10"
           />
         </div>
-      </div>
-
-      {/* سطر بعدی سه‌تایی */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label className="block mb-1 font-medium">دپارتمان</label>
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium">دپارتمان</label>
           <input
             type="text"
             placeholder="دپارتمان"
             value={department}
             onChange={(e) => setDepartment(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full"
-          />
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">سال ترینی</label>
-          <select
-            value={trainingYear}
-            onChange={(e) => setTrainingYear(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full"
-          >
-            <option>سال اول</option>
-            <option>سال دوم</option>
-            <option>سال سوم</option>
-            <option>سال چهارم</option>
-          </select>
-        </div>
-        <div>
-          <label className="block mb-1 font-medium">مجموع نمرات</label>
-          <input
-            type="number"
-            placeholder="مجموع نمرات"
-            value={totalScore}
-            onChange={(e) => setTotalScore(Number(e.target.value))}
-            className="border rounded px-2 py-2 text-center w-full"
+            className="border rounded px-2 py-2 text-center w-full h-10"
           />
         </div>
       </div>
 
-      {/* سطر بعدی سه‌تایی */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label className="block mb-1 font-medium">اوسط نمرات</label>
+      {/* جدول سال‌های ترینینگ */}
+      <table className="table-auto border-collapse border border-slate-300 text-sm w-full mb-4">
+        <thead className="bg-slate-100">
+          <tr>
+            <th className="border px-2 py-2">سال</th>
+            <th className="border px-2 py-2">مجموع نمرات</th>
+            <th className="border px-2 py-2">نام استاد</th>
+          </tr>
+        </thead>
+        <tbody>
+          {years.map((y, idx) => (
+            <tr key={idx}>
+              <td className="border px-2 py-2 text-center">{y.year}</td>
+              <td className="border px-2 py-2">
+                <input
+                  type="number"
+                  value={y.totalScore}
+                  onChange={(e) =>
+                    handleYearChange(idx, "totalScore", e.target.value)
+                  }
+                  className="border rounded px-1 w-full text-center h-9"
+                />
+              </td>
+              <td className="border px-2 py-2">
+                <input
+                  type="text"
+                  value={y.instructor}
+                  onChange={(e) =>
+                    handleYearChange(idx, "instructor", e.target.value)
+                  }
+                  className="border rounded px-1 w-full text-center h-9"
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* اوسط */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium">اوسط نمرات</label>
           <input
             type="number"
             placeholder="اوسط نمرات"
             value={averageScore}
-            onChange={(e) => setAverageScore(Number(e.target.value))}
-            className="border rounded px-2 py-2 text-center w-full"
+            onChange={(e) => setAverageScore(e.target.value)}
+            className="border rounded px-2 py-2 text-center w-full h-10"
           />
         </div>
-        <div>
-          <label className="block mb-1 font-medium">نام استاد</label>
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium">شف دپارتمان</label>
           <input
             type="text"
-            placeholder="نام استاد"
-            value={instructorName}
-            onChange={(e) => setInstructorName(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full"
-          />
-        </div>
-        <div className="flex items-center justify-center">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={instructorSigned}
-              onChange={(e) => setInstructorSigned(e.target.checked)}
-            />
-            امضای استاد
-          </label>
-        </div>
-      </div>
-
-      {/* سطر بعدی سه‌تایی */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <div>
-          <label className="block mb-1 font-medium">شیفت دپارتمان</label>
-          <input
-            type="text"
-            placeholder="شیفت دپارتمان"
+            placeholder="شف دپارتمان"
             value={shiftDepartment}
             onChange={(e) => setShiftDepartment(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full"
+            className="border rounded px-2 py-2 text-center w-full h-10"
           />
         </div>
-        <div>
-          <label className="block mb-1 font-medium">آمر برنامه آموزشی</label>
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium">آمر برنامه آموزشی</label>
           <input
             type="text"
             placeholder="آمر برنامه آموزشی"
             value={programDirector}
             onChange={(e) => setProgramDirector(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full"
+            className="border rounded px-2 py-2 text-center w-full h-10"
           />
-        </div>
-        <div className="flex items-center justify-center">
-          <label className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              checked={presidentSigned}
-              onChange={(e) => setPresidentSigned(e.target.checked)}
-            />
-            مهر و امضای ریاست
-          </label>
         </div>
       </div>
 

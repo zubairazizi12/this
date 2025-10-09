@@ -7,6 +7,7 @@ const router = express.Router();
 // Teacher validation schema
 const createTeacherSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  lostname: z.string().min(1, "Last Name is required"),
   fatherName: z.string().min(1, "Father name is required"),
   grandfatherName: z.string().min(1, "Grandfather name is required"),
   academicRank: z.string().min(1, "Academic rank is required"),
@@ -25,8 +26,8 @@ const createTeacherSchema = z.object({
   emailAddress: z.string().email("Valid email is required"),
   postCode: z.string().min(1, "Post code is required"),
   appointmentType: z.string().min(1, "Appointment type is required"),
-  department: z.string().min(1, "Department is required"),
-  experience: z.number().min(0, "Experience must be non-negative"),
+  // department: z.string().min(1, "Department is required"),
+  // experience: z.number().min(0, "Experience must be non-negative"),
   status: z.string().optional().default("active"),
   profileImageUrl: z.string().optional(),
 });

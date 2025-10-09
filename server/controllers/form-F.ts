@@ -26,11 +26,15 @@ export const createChecklist = async (req: Request, res: Response) => {
 };
 
 // دریافت Checklist بر اساس نام ترینی
+// دریافت Checklist بر اساس نام ترینی (Case-Insensitive)
 export const getChecklistByStudentName = async (req: Request, res: Response) => {
   try {
     const { studentName } = req.params;
 
-    const checklist = await Checklist.findOne({ studentName });
+    const checklist = await Checklist.findOne({
+      studentName: { $regex: new RegExp("^" + studentName + "$", "i") }
+    });
+
     if (!checklist) return res.status(404).json({ message: "Checklist not found" });
 
     // Transform sections data to scores format for frontend
@@ -45,7 +49,6 @@ export const getChecklistByStudentName = async (req: Request, res: Response) => 
       });
     });
 
-    // Return data in the format frontend expects
     const response = {
       studentName: checklist.studentName,
       fatherName: checklist.fatherName,
@@ -59,3 +62,4 @@ export const getChecklistByStudentName = async (req: Request, res: Response) => 
     res.status(500).json({ message: "Server error" });
   }
 };
+

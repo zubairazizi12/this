@@ -3,7 +3,10 @@ import { createEvaluation, getEvaluations } from "../controllers/form-D";
 
 const router = express.Router();
 
-router.post("/", createEvaluation); // ذخیره فرم
-router.get("/", getEvaluations);    // گرفتن تمام فرم‌ها (اختیاری)
+// ذخیره فرم
+router.post("/", createEvaluation);
+
+// گرفتن فرم‌ها با امکان فیلتر بر اساس trainerId
+router.get("/", getEvaluations);
 
 export default router;

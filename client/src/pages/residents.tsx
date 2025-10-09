@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import TrainerRegistrationForm from "@/components/forms/TrainerRegistrationForm";
 import TrainerDetails from "@/components/residents/resident-details";
+import TrainerDetailsModal from "@/components/residents/ResidentDetailsModal";
 
 import {
   Select,
@@ -15,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Search, Eye, MoreHorizontal, Plus, X } from "lucide-react";
 import FormModal from "@/components/forms/form-modal";
 import Sidebar from "@/components/layout/sidebar";
-import Header from "@/components/layout/header";
 import { useAuth } from "@/hooks/useAuth";
 
 type Trainer = {
@@ -66,21 +66,16 @@ export default function TrainersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { data: trainers = [], isLoading } = useQuery<Trainer[]>({
     queryKey: ["/api/trainers"],
     queryFn: async () => {
       const res = await fetch("/api/trainers");
-      const data = await res.json();
-      // Ensure we always return an array
-      return Array.isArray(data) ? data : [];
+      return res.json();
     },
   });
 
-  // Ensure trainers is always an array before filtering
-  const trainersArray = Array.isArray(trainers) ? trainers : [];
-  
-  const filteredTrainers = trainersArray.filter((trainer) => {
+  const filteredTrainers = trainers.filter((trainer) => {
     const fullName = `${trainer.name} ${trainer.lastName}`.toLowerCase();
     const matchesSearch =
       fullName.includes(searchTerm.toLowerCase()) ||
@@ -90,7 +85,7 @@ export default function TrainersPage() {
     return matchesSearch && matchesDepartment;
   });
 
-  const departments = Array.from(new Set(trainersArray.map((t) => t.department)));
+  const departments = Array.from(new Set(trainers.map((t) => t.department)));
 
   const handleSelectForm = (trainer: Trainer, ft: FormType) => {
     setSelectedForm({
@@ -107,9 +102,8 @@ export default function TrainersPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <Header />
         <Sidebar />
-        <div className="mr-64 pt-20 p-6">
+        <div className="mr-64 p-6 ">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-slate-200 rounded w-64"></div>
             <div className="h-20 bg-slate-200 rounded"></div>
@@ -125,10 +119,10 @@ export default function TrainersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header />
+    <div className="min-h-screen bg-slate-50 pt-16">
       <Sidebar />
-      <div className="mr-64 pt-20 p-6">
+      <div className="mr-64 p-6">
+        {/* Header */}
         <header className="bg-white shadow-sm border-b border-slate-200 -m-6 mb-6">
           <div className="px-6 py-4 flex items-center justify-between">
             <h1 className="text-2xl font-semibold text-slate-900">
@@ -165,6 +159,7 @@ export default function TrainersPage() {
           </div>
         </header>
 
+        {/* Search and Filters */}
         <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex flex-wrap items-center gap-4">
           <div className="relative">
             <Search className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
@@ -181,7 +176,7 @@ export default function TrainersPage() {
               <SelectValue placeholder="همه بخش‌ها" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">همه بخش‌ها</SelectItem>
+              ّ<SelectItem value="all">همه بخش‌ها</SelectItem>
               {departments.map((dept) => (
                 <SelectItem key={dept} value={dept}>
                   {dept}
@@ -191,6 +186,7 @@ export default function TrainersPage() {
           </Select>
         </div>
 
+        {/* Table */}
         <table className="min-w-full border border-slate-200 text-sm">
           <thead className="bg-slate-100 text-slate-700 font-semibold">
             <tr>
@@ -221,6 +217,7 @@ export default function TrainersPage() {
                 <td className="p-2 text-center">{trainer.id}</td>
                 <td className="p-2 text-center">{trainer.department}</td>
 
+                {/* اضافه کردن فرم */}
                 <td className="p-2 text-center relative">
                   <Button
                     size="sm"
@@ -238,6 +235,7 @@ export default function TrainersPage() {
 
                   {showDropdownId === trainer._id && (
                     <div className="absolute right-0 top-full mt-2 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-50 w-40">
+                      {/* هدر dropdown */}
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-semibold text-slate-700">
                           انتخاب فرم
@@ -249,11 +247,16 @@ export default function TrainersPage() {
                           <X className="w-4 h-4" />
                         </button>
                       </div>
+
+                      {/* لیست فرم‌ها */}
                       <div className="flex flex-col gap-2 max-h-80 overflow-y-auto">
                         {FORM_TYPES.map((ft) => (
                           <button
                             key={ft.type}
-                            onClick={() => handleSelectForm(trainer, ft)}
+                            onClick={() => {
+                              handleSelectForm(trainer, ft); // ست کردن selectedForm
+                              setShowDropdownId(null); // بستن dropdown بعد از انتخاب
+                            }}
                             className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 hover:bg-hospital-green-600 hover:text-white font-bold transition"
                             title={ft.name}
                           >
@@ -265,16 +268,21 @@ export default function TrainersPage() {
                   )}
                 </td>
 
+                {/* جزئیات */}
                 <td className="p-2 text-center">
                   <Button
                     size="icon"
                     variant="outline"
-                    onClick={() => setSelectedTrainer(trainer._id)}
+                    onClick={() => {
+                      setSelectedTrainer(trainer._id); // یا resident._id
+                      setIsModalOpen(true);
+                    }}
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
                 </td>
 
+                {/* اکشن */}
                 <td className="p-2 text-center">
                   <Button size="icon" variant="outline">
                     <MoreHorizontal className="h-4 w-4" />
@@ -285,16 +293,22 @@ export default function TrainersPage() {
           </tbody>
         </table>
 
-        {selectedTrainer && (
-          <TrainerDetails
-            trainerId={selectedTrainer}
-            onClose={() => setSelectedTrainer(null)}
-          />
-        )}
+        {/* Modals */}
+
         {selectedForm && (
           <FormModal
             form={selectedForm}
             onClose={() => setSelectedForm(null)}
+          />
+        )}
+        {selectedTrainer && (
+          <TrainerDetailsModal
+            trainerId={selectedTrainer}
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedTrainer(null);
+            }}
           />
         )}
       </div>

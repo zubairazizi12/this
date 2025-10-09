@@ -4,7 +4,7 @@ import { setupDemoAuth, isDemoAuthenticated } from "./demoAuth";
 import { UserController, ResidentController, TeacherController } from "./controllers";
 import { trainerRoutes } from "./routes/trainerRoutes";
 import { TeacherModel } from "./models";
-import { teacherActivityRoutes } from "./routes/teacherActivityRoutes";
+import { teacherActivityRoutes } from "./routes/form-J";
 import checklistRoutes from "./routes/form-F";
 
 

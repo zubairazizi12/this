@@ -1,72 +1,65 @@
-// components/residents/form-details/formH-detail.tsx
 import { useQuery } from "@tanstack/react-query";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
+import { useTrainer } from "../../../context/TrainerContext"; // ← مثلاً
+interface TrainingYear {
+  year: string;
+  totalScore: number | string;
+  instructor: string;
+}
 
 interface FormHDetailsProps {
   residentId: string;
   onClose: () => void;
 }
+export default function FormHDetails({
+  residentId,
+  onClose,
+}: FormHDetailsProps) {
+  const { trainerId } = useTrainer();
 
-export default function FormHDetails({ residentId, onClose }: FormHDetailsProps) {
-  // گرفتن اطلاعات فرم H از API
-  const { data, isLoading } = useQuery<any>({
-    queryKey: ["/api/evaluationFormH"],
+  const { data = [], isLoading } = useQuery<any[]>({
+    queryKey: ["/api/evaluationFormH", trainerId],
     queryFn: () =>
-      fetch(`/api/evaluationFormH`).then((r) => r.json()),
+      fetch(`/api/evaluationFormH?trainerId=${trainerId}`).then((r) =>
+        r.json()
+      ),
   });
 
   if (isLoading) return <div>در حال بارگذاری...</div>;
-  if (!data || !data.length) return <div>فرم پیدا نشد.</div>;
+  if (!data.length) return <div>هیچ فرمی موجود نیست</div>;
 
-  const form = data[0]; // اولین فرم برای نمایش
+  // مقایسه با همان فیلد trainer
+  const form = data.find(
+    (f: any) => f.trainer === residentId || f.trainer?._id === residentId
+  );
 
-  // Export PDF
-  const exportPDF = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.text(`فرم H – ${form.residentName} ${form.fatherName}`, 14, 20);
+  if (!form) return <div>فرم مورد نظر پیدا نشد.</div>;
 
-    autoTable(doc as any, {
-      startY: 30,
-      head: [["فیلد", "مقدار"]],
-      body: [
-        ["نام", form.residentName],
-        ["پدر", form.fatherName],
-        ["سال", form.year],
-        ["سال آموزش", form.trainingYear],
-        ["دیپارتمنت", form.department],
-        ["امتیاز کل", form.totalScore],
-        ["میانگین", form.averageScore],
-        ["نام مربی", form.instructorName],
-        ["امضا مربی", form.instructorSigned ? "بله" : "خیر"],
-        ["دیپارتمنت شیفت", form.shiftDepartment],
-        ["رئیس برنامه", form.programDirector],
-        ["امضا رئیس", form.presidentSigned ? "بله" : "خیر"],
-      ],
+  // آرایه کامل چهار سال
+  const allYears = ["سال اول", "سال دوم", "سال سوم", "سال چهارم"];
+  const trainingYears: TrainingYear[] = allYears.map((y) => {
+    const found = (form.trainingYears || []).find(
+      (ty: TrainingYear) => ty.year === y
+    );
+    return found ? found : { year: y, totalScore: "", instructor: "" }; // اگر سال پر نشده بود، خالی قرار بده
+  });
+
+  const exportExcel = () => {
+    const wsData: any[] = [
+      ["مشخصات دستیار"],
+      ["نام", form.residentName],
+      ["نام پدر", form.fatherName],
+      ["دیپارتمنت", form.department],
+      [""],
+      ["سال ترینی", "مجموع نمرات", "نام استاد", "امضا استاد"],
+    ];
+
+    trainingYears.forEach((y) => {
+      wsData.push([y.year, y.totalScore, y.instructor, ""]);
     });
 
-    doc.save(`FormH_${form.residentName}_${form.fatherName}.pdf`);
-  };
-
-  // Export Excel
-  const exportExcel = () => {
-    const wsData = [
-      ["فیلد", "مقدار"],
-      ["نام", form.residentName],
-      ["پدر", form.fatherName],
-      ["سال", form.year],
-      ["سال آموزش", form.trainingYear],
-      ["دیپارتمنت", form.department],
-      ["امتیاز کل", form.totalScore],
-      ["میانگین", form.averageScore],
-      ["نام مربی", form.instructorName],
-      ["امضا مربی", form.instructorSigned ? "بله" : "خیر"],
-      ["دیپارتمنت شیفت", form.shiftDepartment],
-      ["رئیس برنامه", form.programDirector],
-      ["امضا رئیس", form.presidentSigned ? "بله" : "خیر"],
-    ];
+    wsData.push(["", "اوسط نمرات", form.averageScore, ""]);
+    wsData.push(["", "", "امضای ریاست", ""]);
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(wsData);
@@ -74,33 +67,89 @@ export default function FormHDetails({ residentId, onClose }: FormHDetailsProps)
     XLSX.writeFile(wb, `FormH_${form.residentName}_${form.fatherName}.xlsx`);
   };
 
+  const printPage = () => {
+    window.print();
+  };
+
   return (
-    <div className="p-4">
-      <h3 className="text-lg font-bold mb-2">
+    <div className="p-4 print:p-0">
+      <h3 className="text-lg font-bold mb-4 text-center">
         فرم H – {form.residentName} {form.fatherName}
       </h3>
 
-      <table className="table-auto border-collapse border border-slate-300 text-sm w-full">
+      {/* مشخصات */}
+      <table className="table-auto border-collapse border border-slate-300 text-sm w-full mb-4">
         <tbody>
-          <tr><td className="border px-2 py-1 font-semibold">نام</td><td className="border px-2 py-1">{form.residentName}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">پدر</td><td className="border px-2 py-1">{form.fatherName}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">سال</td><td className="border px-2 py-1">{form.year}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">سال آموزش</td><td className="border px-2 py-1">{form.trainingYear}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">دیپارتمنت</td><td className="border px-2 py-1">{form.department}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">امتیاز کل</td><td className="border px-2 py-1">{form.totalScore}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">میانگین</td><td className="border px-2 py-1">{form.averageScore}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">نام مربی</td><td className="border px-2 py-1">{form.instructorName}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">امضا مربی</td><td className="border px-2 py-1">{form.instructorSigned ? "بله" : "خیر"}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">دیپارتمنت شیفت</td><td className="border px-2 py-1">{form.shiftDepartment}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">رئیس برنامه</td><td className="border px-2 py-1">{form.programDirector}</td></tr>
-          <tr><td className="border px-2 py-1 font-semibold">امضا رئیس</td><td className="border px-2 py-1">{form.presidentSigned ? "بله" : "خیر"}</td></tr>
+          <tr>
+            <td className="border px-2 py-1 font-semibold">نام</td>
+            <td className="border px-2 py-1">{form.residentName}</td>
+            <td className="border px-2 py-1 font-semibold">نام پدر</td>
+            <td className="border px-2 py-1">{form.fatherName}</td>
+          </tr>
+          <tr>
+            <td className="border px-2 py-1 font-semibold">دیپارتمنت</td>
+            <td className="border px-2 py-1">{form.department}</td>
+            <td className="border px-2 py-1 font-semibold">شف دپارتمان</td>
+            <td className="border px-2 py-1">{form.shiftDepartment}</td>
+          </tr>
+          <tr>
+            <td className="border px-2 py-1 font-semibold">
+              آمر برنامه آموزشی
+            </td>
+            <td className="border px-2 py-1">{form.programDirector}</td>
+            <td className="border px-2 py-1 font-semibold">امضای ریاست</td>
+            <td className="border px-2 py-1"></td>
+          </tr>
         </tbody>
       </table>
 
-      <div className="mt-4 space-x-2">
-        <button className="bg-blue-500 text-white px-3 py-1 rounded" onClick={exportPDF}>چاپ PDF</button>
-        <button className="bg-green-500 text-white px-3 py-1 rounded" onClick={exportExcel}>چاپ Excel</button>
-        <button className="bg-gray-500 text-white px-3 py-1 rounded" onClick={onClose}>بستن</button>
+      {/* جدول چهار سال ترینی */}
+      <table className="table-auto border-collapse border border-slate-300 text-sm w-full">
+        <thead>
+          <tr>
+            <th className="border px-2 py-1">سال ترینی</th>
+            <th className="border px-2 py-1">مجموع نمرات</th>
+            <th className="border px-2 py-1">نام استاد</th>
+            <th className="border px-2 py-1">امضای استاد</th>
+          </tr>
+        </thead>
+        <tbody>
+          {trainingYears.map((y, idx) => (
+            <tr key={idx}>
+              <td className="border px-2 py-1">{y.year}</td>
+              <td className="border px-2 py-1">{y.totalScore}</td>
+              <td className="border px-2 py-1">{y.instructor}</td>
+              <td className="border px-2 py-1"></td>
+            </tr>
+          ))}
+          <tr>
+            <td className="border px-2 py-1"></td>
+            <td className="border px-2 py-1 font-semibold">اوسط نمرات</td>
+            <td className="border px-2 py-1">{form.averageScore}</td>
+            <td className="border px-2 py-1"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div className="mt-4 flex space-x-2">
+        <button
+          className="bg-green-500 text-white px-3 py-1 rounded"
+          onClick={exportExcel}
+        >
+          چاپ Excel
+        </button>
+        <button
+          className="bg-blue-500 text-white px-3 py-1 rounded"
+          onClick={printPage}
+        >
+          چاپ PDF / پرینت مرورگر
+        </button>
+        <button
+          className="bg-gray-500 text-white px-3 py-1 rounded"
+          onClick={onClose}
+        >
+          بستن
+        </button>
       </div>
     </div>
   );

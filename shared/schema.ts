@@ -53,8 +53,6 @@ export const insertTeacherSchema = z.object({
   emailAddress: z.string().email(),
   postCode: z.string().min(1),
   appointmentType: z.string().min(1),
-  department: z.string().min(1),
-  experience: z.number().min(0),
   status: z.string().default("active"),
   profileImageUrl: z.string().optional(),
 });
@@ -131,6 +129,7 @@ export type Resident = {
 export type Teacher = {
   _id: string;
   name: string;
+  lostname:string;
   fatherName: string;
   grandfatherName: string;
   academicRank: string;
@@ -149,8 +148,6 @@ export type Teacher = {
   emailAddress: string;
   postCode: string;
   appointmentType: string;
-  department: string;
-  experience: number;
   status: string;
   profileImageUrl?: string;
   createdAt: Date;

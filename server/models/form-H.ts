@@ -1,37 +1,42 @@
-// models/form-H.ts
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
+
+interface ITrainingYear {
+  year: string;
+  totalScore: number;
+  instructor: string;
+}
 
 export interface IEvaluationFormH extends Document {
-  studentId: mongoose.Types.ObjectId; // رفرنس به Resident
-  year: string;
+  trainer: Types.ObjectId; // ⬅️ رفرنس به Trainer
   residentName: string;
   fatherName: string;
   department: string;
-  trainingYear: string;
-  totalScore: number;
+  trainingYears: ITrainingYear[];
   averageScore: number;
-  instructorName: string;
-  instructorSigned: boolean;
   shiftDepartment: string;
   programDirector: string;
-  presidentSigned: boolean;
 }
+
+const TrainingYearSchema = new Schema<ITrainingYear>({
+  year: { type: String, required: true },
+  totalScore: { type: Number, default: 0 },
+  instructor: { type: String, default: "" },
+});
 
 const EvaluationFormHSchema = new Schema<IEvaluationFormH>(
   {
-    studentId: { type: Schema.Types.ObjectId, ref: "Resident" }, // 👈 رفرنس
-    year: String,
-    residentName: String,
-    fatherName: String,
-    department: String,
-    trainingYear: String,
-    totalScore: { type: Number, default: 0 },
+    trainer: {
+      type: Schema.Types.ObjectId,
+      ref: "Trainer", // ⬅️ به مدل Trainer وصل می‌شود
+      required: true,
+    },
+    residentName: { type: String, required: true },
+    fatherName: { type: String, required: true },
+    department: { type: String, required: true },
+    trainingYears: [TrainingYearSchema],
     averageScore: { type: Number, default: 0 },
-    instructorName: String,
-    instructorSigned: { type: Boolean, default: false },
-    shiftDepartment: String,
-    programDirector: String,
-    presidentSigned: { type: Boolean, default: false },
+    shiftDepartment: { type: String, default: "" },
+    programDirector: { type: String, default: "" },
   },
   { timestamps: true }
 );

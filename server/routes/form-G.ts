@@ -1,27 +1,12 @@
-import { Router } from "express";
-import {
-  createEvaluationFormG,
-  getEvaluationFormsG,
-  getEvaluationFormGById,
-  updateEvaluationFormG,
-  deleteEvaluationFormG,
-} from "../controllers/form-G";
+import express from "express";
+import { createEvaluationFormG, getEvaluationFormsByTrainer } from "../controllers/form-G";
 
-const router = Router();
+const router = express.Router();
 
-// ایجاد فرم جدید
+// POST: ذخیره فرم جدید
 router.post("/", createEvaluationFormG);
 
-// گرفتن همه فرم‌ها
-router.get("/", getEvaluationFormsG);
-
-// گرفتن فرم با ID
-router.get("/:id", getEvaluationFormGById);
-
-// آپدیت فرم
-router.put("/:id", updateEvaluationFormG);
-
-// حذف فرم
-router.delete("/:id", deleteEvaluationFormG);
+// GET: دریافت فرم‌ها بر اساس trainerId
+router.get("/trainer/:trainerId", getEvaluationFormsByTrainer);
 
 export default router;

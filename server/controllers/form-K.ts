@@ -1,27 +1,37 @@
-// controllers/monographEvaluation.ts
 import { Request, Response } from "express";
-import { MonographEvaluation } from "../models/form-K"; // <-- حتما نام فایل صحیح
+import { MonographEvaluation } from "../models/form-K";
 
+// ایجاد فرم جدید
 export const createMonographEvaluation = async (req: Request, res: Response) => {
-  console.log("[createMonographEvaluation] body:", JSON.stringify(req.body).slice(0,200));
   try {
-    const form = new MonographEvaluation(req.body);
-    const saved = await form.save();
-    console.log("[createMonographEvaluation] saved id:", saved._id);
-    return res.status(201).json(saved);
-  } catch (err) {
-    console.error("[createMonographEvaluation] error:", err);
-    // بازگرداندن JSON با پیام خطا
-    return res.status(400).json({ message: (err as any)?.message || "خطا", error: err });
+    const form = new MonographEvaluation({
+      trainer: req.body.trainer,
+      name: req.body.name,
+      lastName: req.body.lastName,
+      fatherName: req.body.fatherName,
+      idNumber: req.body.idNumber,
+      field: req.body.field,
+      trainingYear: req.body.trainingYear,
+      startYear: req.body.startYear,
+      date: req.body.date,
+      evaluations: req.body.evaluations,
+    });
+
+    await form.save();
+    res.status(201).json(form);
+  } catch (error) {
+    res.status(400).json({ message: "خطا در ایجاد فرم", error });
   }
 };
 
-export const getMonographEvaluations = async (_req: Request, res: Response) => {
+// گرفتن فرم‌ها بر اساس trainerId
+export const getMonographEvaluations = async (req: Request, res: Response) => {
   try {
-    const forms = await MonographEvaluation.find().populate("studentId");
-    return res.json(forms);
+    const { trainerId } = req.query;
+    const filter = trainerId ? { trainer: trainerId } : {};
+    const forms = await MonographEvaluation.find(filter).populate("trainer");
+    res.json(forms);
   } catch (error) {
-    console.error("[getMonographEvaluations] error:", error);
-    return res.status(500).json({ message: "خطا در گرفتن فرم‌ها", error });
+    res.status(500).json({ message: "خطا در گرفتن فرم‌ها", error });
   }
 };

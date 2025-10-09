@@ -14,9 +14,9 @@ import FormDDetails from "@/components/residents/form-details/formD-detail";
 import FormEDetails from "@/components/residents/form-details/formE-detail";
 import FormGDetails from "@/components/residents/form-details/formG-detail";
 import FormHDetails from "@/components/residents/form-details/formH-detail";
-import FormF from "@/components/residents/form-details/form-f";
-
-import TeacherActivityForm from "@/components/residents/form-details/TeacherActivityFormDetails";
+import FormKDetails from "@/components/residents/form-details/formK-detail";
+import RotationForm from "@/components/residents/form-details/formI-detail";
+import TeacherActivityForm from "@/components/residents/form-details/formJ-detail";
 
 // تعریف انواع فرم‌ها
 const FORM_TYPES = [
@@ -140,7 +140,12 @@ export default function TrainerDetails({
 
       {/* دیالوگ برای فرم */}
       <Dialog open={!!selectedForm} onOpenChange={() => setSelectedForm(null)}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent
+          className="w-[60%] max-w-none 
+                  max-h-[90vh] overflow-y-auto 
+                  mt-10 mx-auto
+                  p-4 bg-white rounded-lg"
+        >
           <DialogHeader>
             <DialogTitle>جزئیات فرم {selectedForm}</DialogTitle>
           </DialogHeader>
@@ -148,6 +153,18 @@ export default function TrainerDetails({
           {selectedForm === "C" && (
             <FormCDetails
               residentId={trainerId}
+              onClose={() => setSelectedForm(null)}
+            />
+          )}
+          {selectedForm === "I" && (
+            <RotationForm
+              trainerId={trainerId}
+              onClose={() => setSelectedForm(null)}
+            />
+          )}
+          {selectedForm === "J" && (
+            <TeacherActivityForm
+              trainerId={trainerId}
               onClose={() => setSelectedForm(null)}
             />
           )}
@@ -163,28 +180,6 @@ export default function TrainerDetails({
               onClose={() => setSelectedForm(null)}
             />
           )}
-          {selectedForm === "J" && (
-            <TeacherActivityForm
-              residentId={trainerId} // یا trainerId برای consistency
-              onClose={() => setSelectedForm(null)}
-            />
-          )}
-           <Dialog open={selectedForm === "F"} onOpenChange={() => setSelectedForm(null)}>
-  <DialogContent
-    className="sm:max-w-4xl max-h-[80vh] bg-white rounded-lg shadow-lg p-6 overflow-auto"
-  >
-    <DialogHeader>
-      <DialogTitle>جزئیات فرم {selectedForm}</DialogTitle>
-    </DialogHeader>
-
-    <div className="overflow-auto max-h-[70vh]">
-      <FormF studentName={`${trainer.name} ${trainer.lastName}`} />
-    </div>
-  </DialogContent>
-</Dialog>
-
-
-
           {selectedForm === "G" && (
             <FormGDetails
               residentId={trainerId}
@@ -194,6 +189,13 @@ export default function TrainerDetails({
           {selectedForm === "H" && (
             <FormHDetails
               residentId={trainerId}
+              onClose={() => setSelectedForm(null)}
+            />
+          )}
+
+          {selectedForm === "K" && (
+            <FormKDetails
+              residentId={trainerId} // یا residentId
               onClose={() => setSelectedForm(null)}
             />
           )}
