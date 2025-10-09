@@ -1,12 +1,9 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { Users, Presentation, FileText, BarChart3, LogOut, Settings, Settings2, Settings2Icon, SettingsIcon, InfoIcon, FormInputIcon } from "lucide-react";
+import { Users, BarChart3, LogOut, SettingsIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import setting from "@/pages/setting"; 
-import { info } from "console";
-import { Form } from "../ui/form";
 import Header from "@/components/layout/header";
 
 const navigation = [

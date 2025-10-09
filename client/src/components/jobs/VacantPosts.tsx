@@ -79,7 +79,7 @@ export default function VacantPosts() {
       <div className="flex-1 flex flex-col">
         <Header />
 
-        <div className="p-6 mt-4 space-y-4">
+        <div className="p-6 pt-20 space-y-4">
           {/* دکمه افزودن بست */}
           <div className="flex justify-start mb-4">
             <Button onClick={() => setOpenDialog(true)}>افزودن بست جدید</Button>

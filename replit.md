@@ -8,8 +8,20 @@ This is a web-based Hospital Resident Management System designed to track and ma
 
 Preferred communication style: Simple, everyday language.
 
-## Recent Changes (August 26, 2025)
+## Recent Changes
 
+### October 9, 2025
+**Vacancies Feature (Dynamic Jobs System):**
+- ✅ Converted static vacancies section to fully dynamic database-backed system
+- ✅ Created Vacancy model with Mongoose schema (name, count, date)
+- ✅ Implemented complete CRUD API routes with Zod validation
+- ✅ Added intelligent fallback: uses MongoDB when available, falls back to in-memory storage when disconnected
+- ✅ Updated frontend VacantPosts component to use React Query for data fetching
+- ✅ Integrated toast notifications for user feedback on create/error operations
+- ✅ Fixed component imports in App.tsx and cleaned up sidebar imports
+- ✅ All vacancy data now persists in database and survives page refreshes
+
+### August 26, 2025
 **Migration and Restructuring:**
 - ✅ Successfully migrated project from Replit Agent to Replit environment
 - ✅ Restructured server architecture with better organization:
@@ -55,6 +67,7 @@ Preferred communication style: Simple, everyday language.
 - **Resident Management**: Complete CRUD operations for resident profiles with department assignment and status tracking
 - **Training Forms System**: Nine mandatory forms (J, F, D, I, G, E, C, H, K) with completion tracking and form data storage
 - **Teacher Management**: Comprehensive teacher profiles with detailed information including academic rank, appointment dates, contact details, and department assignment (replaces faculty system)
+- **Vacancies Management**: Dynamic job posting system with database persistence, allowing administrators to create, view, and manage vacant positions with counts and dates
 - **Disciplinary Actions & Rewards**: Tracking system for resident performance incidents and achievements
 - **Reports Module**: Detailed reporting capabilities for residents, forms, disciplinary actions, rewards, and teachers
 - **Authentication**: Secure OAuth integration with Replit Auth system with demo authentication fallback
