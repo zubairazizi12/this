@@ -8,6 +8,7 @@ import { lectureRoutes } from "./routes/lectureRoutes";
 import { TeacherModel } from "./models";
 import { teacherActivityRoutes } from "./routes/form-J";
 import checklistRoutes from "./routes/form-F";
+import { vacancyRoutes } from "./routes/vacancyRoutes";
 
 
 
@@ -56,6 +57,9 @@ app.use("/api/checklists", checklistRoutes);
   app.delete("/api/teachers/:id", isDemoAuthenticated, TeacherController.deleteTeacher);
   // Lecture routes
   app.use("/api/lectures", isDemoAuthenticated, lectureRoutes);
+
+  // Vacancy routes
+  app.use("/api/vacancies", isDemoAuthenticated, vacancyRoutes);
 
 
   // Forms

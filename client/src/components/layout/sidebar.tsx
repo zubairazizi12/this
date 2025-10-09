@@ -8,7 +8,6 @@ import setting from "@/pages/setting";
 import { info } from "console";
 import { Form } from "../ui/form";
 import Header from "@/components/layout/header";
-import jobs from "@/components/jobs/VacantPosts";
 
 const navigation = [
   { name: 'ترینری', href: '/residents', icon: Users },

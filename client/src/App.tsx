@@ -12,7 +12,7 @@ import Reports from "@/pages/reports";
 import NotFound from "@/pages/not-found";
 import  Setting  from "@/pages/setting";
 import  About  from "@/pages/about";
-import jobs from "@/components/jobs/VacantPosts";
+import VacantPosts from "@/components/jobs/VacantPosts";
 //////////////////////////////////////
  import { TrainerProvider } from "./context/TrainerContext"; // ✅ context اضافه شد
 
@@ -36,7 +36,7 @@ function Router() {
           <Route path="/reports" component={Reports} />
           <Route path="/setting" component={Setting} />
           <Route path="/about" component={About} />
-          <Route path="/jobs" component={jobs} />
+          <Route path="/jobs" component={VacantPosts} />
         </>
       )}
       <Route component={NotFound} />
