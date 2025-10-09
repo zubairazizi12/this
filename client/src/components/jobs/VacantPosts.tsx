@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Sidebar from "@/components/layout/sidebar";
-// import Header from "@/components/layout/header";
+import Header from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -40,7 +40,7 @@ export default function VacantPosts() {
       <Sidebar />
 
       <div className="flex-1 flex flex-col">
-        {/* <Header /> */}
+        <Header />
 
         <div className="p-6 mt-4 space-y-4">
           {/* دکمه افزودن بست */}
