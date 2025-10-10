@@ -11,6 +11,16 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### October 10, 2025
+**Role-Based Access Control Enhancement:**
+- ✅ Implemented comprehensive viewer role restrictions across all create/add operations
+- ✅ Added admin-only access control to "Add Form" button in resident-card.tsx
+- ✅ Added admin-only access control to "Add Teacher" button in teachers.tsx
+- ✅ Added admin-only access control to "Add Vacancy" button in VacantPosts.tsx
+- ✅ Viewers can now only view and print data, cannot create new records
+- ✅ Fixed type error in resident-card.tsx (completedAt: null → undefined)
+- ✅ Fixed prop naming in ResidentDetailsModal (residentId → trainerId)
+- ✅ All changes verified and approved by architect review
+
 **Responsive Design Fixes and Import Completion:**
 - ✅ Fixed responsive layout issues in Jobs (VacantPosts) component
 - ✅ Updated VacantPosts with mobile-first responsive design
