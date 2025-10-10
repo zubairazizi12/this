@@ -56,6 +56,33 @@ router.post("/", upload.array("files", 10), async (req: Request, res: Response) 
   }
 });
 
+router.get("/download/:filename", (req: Request, res: Response) => {
+  try {
+    const { filename } = req.params;
+    
+    if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      return res.status(400).json({ message: "نام فایل نامعتبر است" });
+    }
+
+    const filePath = path.join(uploadDir, filename);
+    const resolvedPath = path.resolve(filePath);
+    const resolvedUploadDir = path.resolve(uploadDir);
+
+    if (!resolvedPath.startsWith(resolvedUploadDir)) {
+      return res.status(403).json({ message: "دسترسی غیرمجاز" });
+    }
+
+    if (!fs.existsSync(resolvedPath)) {
+      return res.status(404).json({ message: "فایل یافت نشد" });
+    }
+
+    res.download(resolvedPath);
+  } catch (error) {
+    console.error("Error downloading file:", error);
+    res.status(500).json({ message: "خطا در دانلود فایل" });
+  }
+});
+
 router.get("/:trainerId", async (req: Request, res: Response) => {
   try {
     const { trainerId } = req.params;
@@ -68,22 +95,6 @@ router.get("/:trainerId", async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error fetching trainer actions:", error);
     res.status(500).json({ message: "خطا در دریافت اکشن‌ها" });
-  }
-});
-
-router.get("/download/:filename", (req: Request, res: Response) => {
-  try {
-    const { filename } = req.params;
-    const filePath = path.join(uploadDir, filename);
-
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ message: "فایل یافت نشد" });
-    }
-
-    res.download(filePath);
-  } catch (error) {
-    console.error("Error downloading file:", error);
-    res.status(500).json({ message: "خطا در دانلود فایل" });
   }
 });
 
