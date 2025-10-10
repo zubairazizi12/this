@@ -11,6 +11,28 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### October 10, 2025
+**Lecture File Upload and Download System (Latest):**
+- ✅ Implemented complete file upload and download system for lectures with backward compatibility
+- ✅ Updated Lecture model to support file metadata (filename, originalName, path, size)
+- ✅ Added Multer file upload middleware for lectures (10MB max per file, up to 10 files)
+- ✅ Files stored in `uploads/lectures/` directory with unique naming
+- ✅ Created secure download endpoint at `/api/lectures/download/:filename` with path traversal protection
+- ✅ Updated LectureModal to upload files using FormData instead of just storing filenames
+- ✅ Enhanced TrainerLecturesModal to display downloadable files with size information
+- ✅ Implemented backward compatibility:
+  - Supports both legacy format (string array) and new format (file metadata objects)
+  - Old lectures display filenames without download button (safe degradation)
+  - New lectures show download buttons with file size information
+  - TypeScript types updated to handle both formats: `(FileInfo | string)[]`
+- ✅ All changes tested and verified by architect review
+- ✅ Added uploads/lectures/ to .gitignore
+
+**Enhanced Viewer Role Restrictions (Action Button):**
+- ✅ Hidden "Action" button (اکشن) in Trainee/Residents page for viewer accounts
+- ✅ Only admin users can now see and use the action button
+- ✅ Viewers maintain read-only access to resident information
+- ✅ All changes verified and approved by architect review
+
 **Trainer Actions File Upload System:**
 - ✅ Updated TrainerAction database model to support file uploads instead of form selections
   - Changed from `selectedForms` array to `files` array with metadata (filename, originalName, path, size)
