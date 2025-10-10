@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import TrainerDetailsModal from "@/components/residents/ResidentDetailsModal";
+import TrainerLecturesModal from "./TrainerLecturesModal";
 import {
   Select,
   SelectContent,
@@ -10,7 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Search, Eye, MoreHorizontal } from "lucide-react";
+import { Search, Eye, MoreHorizontal, BookOpen } from "lucide-react";
 import Sidebar from "@/components/layout/sidebar";
 
 type Trainer = {
@@ -25,6 +26,8 @@ type Trainer = {
 export default function TrainerReportPage() {
   const [selectedTrainer, setSelectedTrainer] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedLecturesTrainer, setSelectedLecturesTrainer] = useState<{id: string, name: string} | null>(null);
+  const [isLecturesModalOpen, setIsLecturesModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
 
@@ -122,6 +125,7 @@ export default function TrainerReportPage() {
                 <th className="px-3 py-2 border">آیدی</th>
                 <th className="px-3 py-2 border">دپارتمان</th>
                 <th className="px-3 py-2 border">جزئیات</th>
+                <th className="px-3 py-2 border">لکچرها</th>
                 <th className="px-3 py-2 border">اکشن</th>
               </tr>
             </thead>
@@ -156,6 +160,23 @@ export default function TrainerReportPage() {
                     </Button>
                   </td>
 
+                  {/* لکچرها */}
+                  <td className="px-3 py-2 border text-center">
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedLecturesTrainer({
+                          id: trainer._id,
+                          name: `${trainer.name} ${trainer.lastName}`
+                        });
+                        setIsLecturesModalOpen(true);
+                      }}
+                    >
+                      <BookOpen className="h-4 w-4" />
+                    </Button>
+                  </td>
+
                   {/* اکشن */}
                   <td className="px-3 py-2 border text-center">
                     <Button size="icon" variant="outline">
@@ -176,6 +197,19 @@ export default function TrainerReportPage() {
             onClose={() => {
               setIsModalOpen(false);
               setSelectedTrainer(null);
+            }}
+          />
+        )}
+
+        {/* Lectures Modal */}
+        {selectedLecturesTrainer && (
+          <TrainerLecturesModal
+            trainerId={selectedLecturesTrainer.id}
+            trainerName={selectedLecturesTrainer.name}
+            isOpen={isLecturesModalOpen}
+            onClose={() => {
+              setIsLecturesModalOpen(false);
+              setSelectedLecturesTrainer(null);
             }}
           />
         )}

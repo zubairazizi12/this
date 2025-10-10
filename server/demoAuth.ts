@@ -110,7 +110,7 @@ export async function setupDemoAuth(app: Express) {
   // Demo logout endpoint
   app.get("/api/logout", (req, res) => {
     req.session.destroy(() => {
-      res.json({ success: true });
+      res.redirect("/");
     });
   });
 
