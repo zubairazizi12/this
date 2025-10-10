@@ -11,7 +11,17 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### October 10, 2025
-**Role-Based Access Control Enhancement:**
+**Enhanced Viewer Role Restrictions:**
+- ✅ Hidden Settings/Users menu item from sidebar for viewer accounts (only admins see it)
+- ✅ Hidden "Add Form" button in Training/Trainee (residents) section for viewers
+- ✅ Hidden "Edit" button in Teachers table for viewers (only admins can edit)
+- ✅ Hidden "Add Lecture" button in Teachers table for viewers
+- ✅ Hidden "Edit" and "Delete" buttons in Users management page for viewers
+- ✅ All admin-only UI controls now properly restricted based on user role
+- ✅ Viewers have read-only access throughout the entire application
+- ✅ All changes verified and approved by architect review
+
+**Previous Role-Based Access Control Enhancement:**
 - ✅ Implemented comprehensive viewer role restrictions across all create/add operations
 - ✅ Added admin-only access control to "Add Form" button in resident-card.tsx
 - ✅ Added admin-only access control to "Add Teacher" button in teachers.tsx
@@ -20,7 +30,6 @@ Preferred communication style: Simple, everyday language.
 - ✅ Viewers can now only view and print data, cannot create new records
 - ✅ Fixed type error in resident-card.tsx (completedAt: null → undefined)
 - ✅ Fixed prop naming in ResidentDetailsModal (residentId → trainerId)
-- ✅ All changes verified and approved by architect review
 
 **Responsive Design Fixes and Import Completion:**
 - ✅ Fixed responsive layout issues in Jobs (VacantPosts) component
