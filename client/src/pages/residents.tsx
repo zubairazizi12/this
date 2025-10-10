@@ -71,11 +71,14 @@ export default function TrainersPage() {
     queryKey: ["/api/trainers"],
     queryFn: async () => {
       const res = await fetch("/api/trainers");
+      if (!res.ok) {
+        throw new Error('Failed to fetch trainers');
+      }
       return res.json();
     },
   });
 
-  const filteredTrainers = trainers.filter((trainer) => {
+  const filteredTrainers = Array.isArray(trainers) ? trainers.filter((trainer) => {
     const fullName = `${trainer.name} ${trainer.lastName}`.toLowerCase();
     const matchesSearch =
       fullName.includes(searchTerm.toLowerCase()) ||
@@ -83,9 +86,9 @@ export default function TrainersPage() {
     const matchesDepartment =
       departmentFilter === "all" || trainer.department === departmentFilter;
     return matchesSearch && matchesDepartment;
-  });
+  }) : [];
 
-  const departments = Array.from(new Set(trainers.map((t) => t.department)));
+  const departments = Array.isArray(trainers) ? Array.from(new Set(trainers.map((t) => t.department))) : [];
 
   const handleSelectForm = (trainer: Trainer, ft: FormType) => {
     setSelectedForm({
