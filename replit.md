@@ -11,6 +11,20 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### October 10, 2025
+**Trainer Actions System:**
+- ✅ Created TrainerAction database model with description and selected forms fields
+- ✅ Implemented API endpoints for creating, retrieving, and deleting trainer actions
+- ✅ Added authentication middleware (isDemoAuthenticated) to protect action endpoints
+- ✅ Built TrainerActionModal component with:
+  - Description text area for action details
+  - Multi-select checkboxes for associating multiple forms (J, F, D, I, G, E, C, H, K)
+  - Display of previously saved actions with delete functionality
+  - Real-time updates using React Query
+- ✅ Connected action button in residents/trainers page to open modal
+- ✅ Added actions display in reports section (TrainerDetails component)
+- ✅ Trainer actions now accessible via ID in both training and reports sections
+- ✅ All changes tested and verified by architect review
+
 **Enhanced Viewer Role Restrictions:**
 - ✅ Hidden Settings/Users menu item from sidebar for viewer accounts (only admins see it)
 - ✅ Hidden "Add Form" button in Training/Trainee (residents) section for viewers
