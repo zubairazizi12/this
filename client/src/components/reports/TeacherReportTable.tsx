@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { Button } from "@/components/ui/button";
+import { BookOpen } from "lucide-react";
+import TrainerLecturesModal from "./TrainerLecturesModal";
 
 interface Teacher {
+  _id?: string;
   name: string;
   lostname: string;
   fatherName: string;
@@ -36,6 +40,8 @@ export default function TeacherReportTable({ teachers }: Props) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPosition, setSelectedPosition] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("");
+  const [selectedLecturesTeacher, setSelectedLecturesTeacher] = useState<{id: string, name: string} | null>(null);
+  const [isLecturesModalOpen, setIsLecturesModalOpen] = useState(false);
 
   const filteredTeachers = teachers.filter((t) => {
     return (
@@ -165,6 +171,7 @@ export default function TeacherReportTable({ teachers }: Props) {
               <th className="px-3 py-2 border">نوع انتصاب</th>
               {/* <th className="px-3 py-2">سابقه</th> */}
               <th className="px-3 py-2 border">وضعیت</th>
+              <th className="px-3 py-2 border">لکچرها</th>
             </tr>
           </thead>
           <tbody>
@@ -210,11 +217,42 @@ export default function TeacherReportTable({ teachers }: Props) {
                     {t.status}
                   </span>
                 </td>
+                <td className="px-3 py-2 border text-center">
+                  {t._id && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedLecturesTeacher({
+                          id: t._id!,
+                          name: `${t.name} ${t.lostname}`
+                        });
+                        setIsLecturesModalOpen(true);
+                      }}
+                    >
+                      <BookOpen className="h-4 w-4 ml-1" />
+                      لکچرها
+                    </Button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {/* Lectures Modal */}
+      {selectedLecturesTeacher && (
+        <TrainerLecturesModal
+          trainerId={selectedLecturesTeacher.id}
+          trainerName={selectedLecturesTeacher.name}
+          isOpen={isLecturesModalOpen}
+          onClose={() => {
+            setIsLecturesModalOpen(false);
+            setSelectedLecturesTeacher(null);
+          }}
+        />
+      )}
     </div>
   );
 }
