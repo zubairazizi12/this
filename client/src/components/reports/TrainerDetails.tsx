@@ -38,11 +38,21 @@ export default function TrainerDetails({
   onClose,
 }: TrainerDetailsProps) {
   const [selectedForm, setSelectedForm] = useState<string | null>(null);
+  const [showActions, setShowActions] = useState(false);
 
   const { data: trainer, isLoading, error } = useQuery({
     queryKey: ["trainer", trainerId],
     queryFn: () =>
       fetch(`/api/trainers/${trainerId}`).then((res) => res.json()),
+  });
+
+  const { data: actions = [] } = useQuery({
+    queryKey: ["trainer-actions", trainerId],
+    queryFn: async () => {
+      const res = await fetch(`/api/trainer-actions/${trainerId}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
   });
 
   if (isLoading) return <div>در حال بارگذاری...</div>;
@@ -109,7 +119,14 @@ export default function TrainerDetails({
             ))}
           </div>
 
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex gap-2">
+            <Button 
+              size="sm" 
+              className="bg-hospital-green-600 text-white hover:bg-hospital-green-700"
+              onClick={() => setShowActions(!showActions)}
+            >
+              اکشن‌ها ({actions.length})
+            </Button>
             <Button size="sm" className="bg-red-500 text-white hover:bg-red-600">
               Disciplinary Actions
             </Button>
@@ -147,6 +164,60 @@ export default function TrainerDetails({
             </ul>
           </div>
         </div>
+
+        {/* اکشن‌ها */}
+        {showActions && (
+          <div className="mt-6 border-t border-slate-200 pt-4">
+            <h4 className="font-medium text-slate-900 mb-4">اکشن‌های ترینری</h4>
+            
+            {actions.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">
+                هیچ اکشنی ثبت نشده است
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {actions.map((action: any) => (
+                  <div
+                    key={action._id}
+                    className="border rounded-lg p-4 bg-slate-50 hover:shadow-md transition-shadow"
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <p className="text-sm text-slate-600 mb-2">
+                          تاریخ:{" "}
+                          {new Date(action.createdAt).toLocaleDateString("fa-IR")}
+                        </p>
+                        <p className="text-base font-medium">{action.description}</p>
+                      </div>
+                    </div>
+
+                    {action.selectedForms && action.selectedForms.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-slate-300">
+                        <p className="text-sm font-semibold text-slate-600 mb-2">
+                          فرم‌های مرتبط:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {action.selectedForms.map((formType: string) => {
+                            const form = FORM_TYPES.find((f) => f.type === formType);
+                            return (
+                              <span
+                                key={formType}
+                                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-hospital-green-100 text-hospital-green-800"
+                              >
+                                فرم {formType}
+                                {form && ` - ${form.name}`}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* فرم‌ها */}
         {selectedForm && (

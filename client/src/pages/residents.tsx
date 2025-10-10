@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import TrainerRegistrationForm from "@/components/forms/TrainerRegistrationForm";
 import TrainerDetails from "@/components/residents/resident-details";
 import TrainerDetailsModal from "@/components/residents/ResidentDetailsModal";
+import TrainerActionModal from "@/components/residents/TrainerActionModal";
 
 import {
   Select,
@@ -67,6 +68,8 @@ export default function TrainersPage() {
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [showForm, setShowForm] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
+  const [selectedActionTrainer, setSelectedActionTrainer] = useState<Trainer | null>(null);
   const { data: trainers = [], isLoading } = useQuery<Trainer[]>({
     queryKey: ["/api/trainers"],
     queryFn: async () => {
@@ -291,7 +294,14 @@ export default function TrainersPage() {
 
                 {/* اکشن */}
                 <td className="p-2 text-center">
-                  <Button size="icon" variant="outline">
+                  <Button
+                    size="icon"
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedActionTrainer(trainer);
+                      setIsActionModalOpen(true);
+                    }}
+                  >
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </td>
@@ -315,6 +325,17 @@ export default function TrainersPage() {
             onClose={() => {
               setIsModalOpen(false);
               setSelectedTrainer(null);
+            }}
+          />
+        )}
+        {selectedActionTrainer && (
+          <TrainerActionModal
+            trainerId={selectedActionTrainer._id}
+            trainerName={`${selectedActionTrainer.name} ${selectedActionTrainer.lastName}`}
+            isOpen={isActionModalOpen}
+            onClose={() => {
+              setIsActionModalOpen(false);
+              setSelectedActionTrainer(null);
             }}
           />
         )}
