@@ -1,20 +1,51 @@
 import express, { Request, Response } from "express";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 import { TrainerAction } from "../models/trainerAction";
 
 const router = express.Router();
 
-router.post("/", async (req: Request, res: Response) => {
+const uploadDir = path.join(process.cwd(), "uploads", "trainer-actions");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + "-" + file.originalname);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+router.post("/", upload.array("files", 10), async (req: Request, res: Response) => {
   try {
-    const { trainerId, description, selectedForms } = req.body;
+    const { trainerId, description } = req.body;
+    const uploadedFiles = req.files as Express.Multer.File[];
 
     if (!trainerId || !description) {
       return res.status(400).json({ message: "شناسه ترینر و توضیحات الزامی است" });
     }
 
+    const files = uploadedFiles?.map((file) => ({
+      filename: file.filename,
+      originalName: file.originalname,
+      path: file.path,
+      size: file.size,
+    })) || [];
+
     const newAction = new TrainerAction({
       trainer: trainerId,
       description,
-      selectedForms: selectedForms || [],
+      files,
     });
 
     const savedAction = await newAction.save();
@@ -40,15 +71,41 @@ router.get("/:trainerId", async (req: Request, res: Response) => {
   }
 });
 
+router.get("/download/:filename", (req: Request, res: Response) => {
+  try {
+    const { filename } = req.params;
+    const filePath = path.join(uploadDir, filename);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "فایل یافت نشد" });
+    }
+
+    res.download(filePath);
+  } catch (error) {
+    console.error("Error downloading file:", error);
+    res.status(500).json({ message: "خطا در دانلود فایل" });
+  }
+});
+
 router.delete("/:actionId", async (req: Request, res: Response) => {
   try {
     const { actionId } = req.params;
     
-    const deletedAction = await TrainerAction.findByIdAndDelete(actionId);
+    const action = await TrainerAction.findById(actionId);
     
-    if (!deletedAction) {
+    if (!action) {
       return res.status(404).json({ message: "اکشن یافت نشد" });
     }
+
+    if (action.files && action.files.length > 0) {
+      action.files.forEach((file) => {
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+        }
+      });
+    }
+
+    await TrainerAction.findByIdAndDelete(actionId);
 
     res.status(200).json({ message: "اکشن حذف شد" });
   } catch (error) {
