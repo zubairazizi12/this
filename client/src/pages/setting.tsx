@@ -9,8 +9,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import UserFormDialog from "@/components/forms/UserFormDialog";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function UserManagement() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,13 +87,15 @@ const filteredUsers = users.filter(
             <h1 className="text-3xl font-bold tracking-tight">مدیریت کاربران</h1>
             <p className="text-slate-600 dark:text-slate-400">مدیریت حساب‌های کاربران سیستم</p>
           </div>
-          <Button
-            onClick={handleAddUser}
-            data-testid="button-add-user"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            افزودن کاربر جدید
-          </Button>
+          {user?.role === "admin" && (
+            <Button
+              onClick={handleAddUser}
+              data-testid="button-add-user"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              افزودن کاربر جدید
+            </Button>
+          )}
         </div>
 
         {/* Main Card */}

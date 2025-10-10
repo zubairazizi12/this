@@ -16,6 +16,7 @@ Preferred communication style: Simple, everyday language.
 - ✅ Added admin-only access control to "Add Form" button in resident-card.tsx
 - ✅ Added admin-only access control to "Add Teacher" button in teachers.tsx
 - ✅ Added admin-only access control to "Add Vacancy" button in VacantPosts.tsx
+- ✅ Added admin-only access control to "Add User" button in setting.tsx
 - ✅ Viewers can now only view and print data, cannot create new records
 - ✅ Fixed type error in resident-card.tsx (completedAt: null → undefined)
 - ✅ Fixed prop naming in ResidentDetailsModal (residentId → trainerId)
