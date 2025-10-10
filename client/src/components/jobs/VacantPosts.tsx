@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { Plus } from "lucide-react";
 
 interface Vacancy {
   _id: string;
@@ -73,59 +74,76 @@ export default function VacantPosts() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50">
       <Sidebar />
-
-      <div className="flex-1 flex flex-col">
+      
+      <div className="mr-0 md:mr-64">
         <Header />
-
-        <div className="p-6 pt-20 space-y-4">
+        
+        <div className="pt-16 md:pt-20 p-4 md:p-6 space-y-4">
           {/* دکمه افزودن بست */}
-          <div className="flex justify-start mb-4">
-            <Button onClick={() => setOpenDialog(true)}>افزودن بست جدید</Button>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+            <h2 className="text-xl md:text-2xl font-bold text-slate-800">مدیریت بست‌های خالی</h2>
+            <Button 
+              onClick={() => setOpenDialog(true)}
+              className="w-full sm:w-auto bg-hospital-green-600 hover:bg-hospital-green-700"
+            >
+              <Plus className="ml-2 h-4 w-4" />
+              افزودن بست جدید
+            </Button>
           </div>
 
           {/* جدول نمایش بست‌ها */}
-          <div className="overflow-x-auto rounded-lg shadow border border-slate-200">
-            <table className="min-w-full border-collapse text-sm">
-              <thead className="bg-slate-100 text-slate-700">
-                <tr>
-                  <th className="px-4 py-3 text-right">شماره</th>
-                  <th className="px-4 py-3 text-right">نام بست</th>
-                  <th className="px-4 py-3 text-right">تعداد</th>
-                  <th className="px-4 py-3 text-right">تاریخ ثبت</th>
-                </tr>
-              </thead>
-              <tbody>
-                {isLoading ? (
+          <div className="bg-white rounded-lg shadow border border-slate-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full border-collapse text-sm">
+                <thead className="bg-slate-100 text-slate-700">
                   <tr>
-                    <td colSpan={4} className="text-center text-gray-500 py-6">
-                      در حال بارگذاری...
-                    </td>
+                    <th className="px-3 md:px-4 py-3 text-right font-semibold">شماره</th>
+                    <th className="px-3 md:px-4 py-3 text-right font-semibold">نام بست</th>
+                    <th className="px-3 md:px-4 py-3 text-right font-semibold">تعداد</th>
+                    <th className="px-3 md:px-4 py-3 text-right font-semibold">تاریخ ثبت</th>
                   </tr>
-                ) : vacancies.length > 0 ? (
-                  vacancies.map((v, index) => (
-                    <tr
-                      key={v._id}
-                      className={`${
-                        index % 2 === 0 ? "bg-white" : "bg-slate-50"
-                      } hover:bg-slate-100 transition`}
-                    >
-                      <td className="px-4 py-3">{index + 1}</td>
-                      <td className="px-4 py-3">{v.name}</td>
-                      <td className="px-4 py-3">{v.count}</td>
-                      <td className="px-4 py-3">{v.date}</td>
+                </thead>
+                <tbody>
+                  {isLoading ? (
+                    <tr>
+                      <td colSpan={4} className="text-center text-gray-500 py-8">
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="animate-spin h-5 w-5 border-2 border-hospital-green-600 border-t-transparent rounded-full"></div>
+                          در حال بارگذاری...
+                        </div>
+                      </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="text-center text-gray-500 py-6">
-                      هیچ بست ثبت نشده است
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  ) : vacancies.length > 0 ? (
+                    vacancies.map((v, index) => (
+                      <tr
+                        key={v._id}
+                        className={`${
+                          index % 2 === 0 ? "bg-white" : "bg-slate-50"
+                        } hover:bg-slate-100 transition-colors`}
+                      >
+                        <td className="px-3 md:px-4 py-3 text-slate-900">{index + 1}</td>
+                        <td className="px-3 md:px-4 py-3 text-slate-900 font-medium">{v.name}</td>
+                        <td className="px-3 md:px-4 py-3 text-slate-900">{v.count}</td>
+                        <td className="px-3 md:px-4 py-3 text-slate-600">{v.date}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="text-center text-gray-500 py-8">
+                        <div className="flex flex-col items-center gap-2">
+                          <svg className="h-12 w-12 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          <p className="text-lg">هیچ بست خالی ثبت نشده است</p>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
