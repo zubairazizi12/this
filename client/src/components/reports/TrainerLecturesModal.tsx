@@ -1,6 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from "date-fns";
+import { Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface FileInfo {
+  filename: string;
+  originalName: string;
+  path: string;
+  size: number;
+}
 
 interface Lecture {
   _id: string;
@@ -10,7 +19,7 @@ interface Lecture {
   endTime: string;
   room: string;
   notes: string;
-  files: string[];
+  files: (FileInfo | string)[];
 }
 
 interface TrainerLecturesModalProps {
@@ -92,11 +101,39 @@ export default function TrainerLecturesModal({
                     {lecture.files && lecture.files.length > 0 && (
                       <div className="md:col-span-2">
                         <span className="text-sm font-semibold text-slate-600">فایل‌ها:</span>
-                        <ul className="list-disc list-inside text-slate-800">
-                          {lecture.files.map((file, idx) => (
-                            <li key={idx}>{file}</li>
-                          ))}
-                        </ul>
+                        <div className="mt-2 space-y-2">
+                          {lecture.files.map((file, idx) => {
+                            // Handle both old format (string) and new format (object)
+                            const isOldFormat = typeof file === 'string';
+                            const fileName = isOldFormat ? file : file.originalName;
+                            const fileSize = isOldFormat ? null : file.size;
+                            const downloadUrl = isOldFormat ? '#' : `/api/lectures/download/${file.filename}`;
+                            
+                            return (
+                              <div key={idx} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-slate-800">{fileName}</span>
+                                  {fileSize && (
+                                    <span className="text-xs text-slate-500">
+                                      ({(fileSize / 1024).toFixed(1)} KB)
+                                    </span>
+                                  )}
+                                </div>
+                                {!isOldFormat && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => window.open(downloadUrl, '_blank')}
+                                    className="flex items-center gap-1"
+                                  >
+                                    <Download className="h-3 w-3" />
+                                    دانلود
+                                  </Button>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
                     )}
                   </div>

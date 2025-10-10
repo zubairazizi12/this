@@ -9,7 +9,12 @@ export interface ILecture extends Document {
   endTime: string;
   room: string;
   notes: string;
-  files: string[];
+  files: ({
+    filename: string;
+    originalName: string;
+    path: string;
+    size: number;
+  } | string)[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -22,7 +27,10 @@ const lectureSchema = new Schema<ILecture>({
   endTime: { type: String, required: true },
   room: { type: String, required: true },
   notes: { type: String, default: "" },
-  files: [{ type: String }],
+  files: {
+    type: Schema.Types.Mixed,
+    default: [],
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

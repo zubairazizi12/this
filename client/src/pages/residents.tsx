@@ -294,16 +294,18 @@ export default function TrainersPage() {
 
                 {/* اکشن */}
                 <td className="p-2 text-center">
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={() => {
-                      setSelectedActionTrainer(trainer);
-                      setIsActionModalOpen(true);
-                    }}
-                  >
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
+                  {user?.role === "admin" && (
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedActionTrainer(trainer);
+                        setIsActionModalOpen(true);
+                      }}
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  )}
                 </td>
               </tr>
             ))}
