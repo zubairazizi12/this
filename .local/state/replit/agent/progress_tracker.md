@@ -11,3 +11,10 @@
 [x] 11. Implemented role-based access control - Viewers cannot see add/create buttons, only admins can
 [x] 12. All changes reviewed by architect - Confirmed working correctly
 [x] 13. Migration to Replit environment completed - October 10, 2025 - All dependencies reinstalled, server running on port 5000, application fully functional
+[x] 14. Enhanced role-based access control for viewer accounts - October 10, 2025:
+  - Hidden Settings/Users menu from sidebar for viewers
+  - Hidden "Add Form" button in Training/Trainee section for viewers
+  - Hidden "Edit" button in Teachers table for viewers
+  - Hidden "Add Lecture" button in Teachers table for viewers
+  - Hidden "Edit" and "Delete" buttons in Users management for viewers
+  - All admin-only features now properly restricted based on user role

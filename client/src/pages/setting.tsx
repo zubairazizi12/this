@@ -141,27 +141,31 @@ const filteredUsers = users.filter(
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredUsers.map((user) => (
-                      <tr key={user._id} className="text-center hover:bg-slate-50">
-                      <td className="border p-2">{user.firstName ?? "-"}</td>
-                      <td className="border p-2">{user.email ?? "-"}</td>
-                      <td className="border p-2">{user.role ?? "-"}</td>
+                    {filteredUsers.map((userItem) => (
+                      <tr key={userItem._id} className="text-center hover:bg-slate-50">
+                      <td className="border p-2">{userItem.firstName ?? "-"}</td>
+                      <td className="border p-2">{userItem.email ?? "-"}</td>
+                      <td className="border p-2">{userItem.role ?? "-"}</td>
 
                         <td className="border p-2 flex items-center justify-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditUser(user)}
-                          >
-                            ویرایش
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => deleteUser(user._id)}
-                          >
-                            حذف
-                          </Button>
+                          {user?.role === "admin" && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEditUser(userItem)}
+                              >
+                                ویرایش
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => deleteUser(userItem._id)}
+                              >
+                                حذف
+                              </Button>
+                            </>
+                          )}
                         </td>
                       </tr>
                     ))}

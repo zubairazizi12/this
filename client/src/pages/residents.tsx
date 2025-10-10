@@ -222,52 +222,56 @@ export default function TrainersPage() {
 
                 {/* اضافه کردن فرم */}
                 <td className="p-2 text-center relative">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="flex items-center gap-1"
-                    onClick={() =>
-                      setShowDropdownId(
-                        showDropdownId === trainer._id ? null : trainer._id
-                      )
-                    }
-                  >
-                    <Plus className="h-3 w-3" />
-                    اضافه نمودن فرم
-                  </Button>
+                  {user?.role === "admin" && (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex items-center gap-1"
+                        onClick={() =>
+                          setShowDropdownId(
+                            showDropdownId === trainer._id ? null : trainer._id
+                          )
+                        }
+                      >
+                        <Plus className="h-3 w-3" />
+                        اضافه نمودن فرم
+                      </Button>
 
-                  {showDropdownId === trainer._id && (
-                    <div className="absolute right-0 top-full mt-2 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-50 w-40">
-                      {/* هدر dropdown */}
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-semibold text-slate-700">
-                          انتخاب فرم
-                        </span>
-                        <button
-                          onClick={() => setShowDropdownId(null)}
-                          className="text-slate-500 hover:text-red-500"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
+                      {showDropdownId === trainer._id && (
+                        <div className="absolute right-0 top-full mt-2 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-50 w-40">
+                          {/* هدر dropdown */}
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-sm font-semibold text-slate-700">
+                              انتخاب فرم
+                            </span>
+                            <button
+                              onClick={() => setShowDropdownId(null)}
+                              className="text-slate-500 hover:text-red-500"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
 
-                      {/* لیست فرم‌ها */}
-                      <div className="flex flex-col gap-2 max-h-80 overflow-y-auto">
-                        {FORM_TYPES.map((ft) => (
-                          <button
-                            key={ft.type}
-                            onClick={() => {
-                              handleSelectForm(trainer, ft); // ست کردن selectedForm
-                              setShowDropdownId(null); // بستن dropdown بعد از انتخاب
-                            }}
-                            className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 hover:bg-hospital-green-600 hover:text-white font-bold transition"
-                            title={ft.name}
-                          >
-                            {ft.type}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                          {/* لیست فرم‌ها */}
+                          <div className="flex flex-col gap-2 max-h-80 overflow-y-auto">
+                            {FORM_TYPES.map((ft) => (
+                              <button
+                                key={ft.type}
+                                onClick={() => {
+                                  handleSelectForm(trainer, ft); // ست کردن selectedForm
+                                  setShowDropdownId(null); // بستن dropdown بعد از انتخاب
+                                }}
+                                className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 hover:bg-hospital-green-600 hover:text-white font-bold transition"
+                                title={ft.name}
+                              >
+                                {ft.type}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                 </td>
 

@@ -74,6 +74,11 @@ export default function Sidebar() {
             const Icon = item.icon;
             const isActive = location === item.href || location.startsWith(item.href + '/');
             
+            // Hide Settings/Users section for viewers
+            if (item.href === '/setting' && user?.role !== 'admin') {
+              return null;
+            }
+            
             return (
               <Link key={item.name} href={item.href}>
                 <div className={cn(

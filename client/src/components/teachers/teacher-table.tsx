@@ -6,6 +6,7 @@ import { Eye, Edit, CalendarDays } from "lucide-react";
 import ViewTeacherModal from "./ViewTeacherModal";
 import LectureModal from "./LectureModal";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
 
 interface TeacherTableProps {
   teachers: Teacher[];
@@ -20,6 +21,7 @@ export default function TeacherTable({
   onEdit,
   onDelete,
 }: TeacherTableProps) {
+  const { user } = useAuth();
   const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null);
   const [openLectureModal, setOpenLectureModal] = useState(false);
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -108,25 +110,29 @@ export default function TeacherTable({
                 </Button>
 
                 {/* ویرایش */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onEdit(teacher)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
+                {user?.role === "admin" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onEdit(teacher)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                )}
 
                 {/* بخش لکچر */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setSelectedTeacher(teacher);
-                    setOpenLectureModal(true);
-                  }}
-                >
-                  <CalendarDays className="h-4 w-4" />
-                </Button>
+                {user?.role === "admin" && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedTeacher(teacher);
+                      setOpenLectureModal(true);
+                    }}
+                  >
+                    <CalendarDays className="h-4 w-4" />
+                  </Button>
+                )}
               </td>
             </tr>
           ))}
