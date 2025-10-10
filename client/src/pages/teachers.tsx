@@ -16,8 +16,10 @@ import TeacherFormDialog from "@/components/forms/teacher-form-dialog";
 import { Teacher, InsertTeacher, insertTeacherSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Teachers() {
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
@@ -171,18 +173,19 @@ export default function Teachers() {
 
           {/* دکمه پایین هدر */}
           <div className="flex justify-end">
-       
-            <Button
-              onClick={() => {
-                setEditingTeacher(null);
-                setIsAddDialogOpen(true);
-              }}
-              data-testid="button-add-teacher"
-              className="ml-4"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              افزودن استاد جدید
-            </Button>
+            {user?.role === "admin" && (
+              <Button
+                onClick={() => {
+                  setEditingTeacher(null);
+                  setIsAddDialogOpen(true);
+                }}
+                data-testid="button-add-teacher"
+                className="ml-4"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                افزودن استاد جدید
+              </Button>
+            )}
           </div>
         </div>
 

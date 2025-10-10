@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Vacancy {
   _id: string;
@@ -18,6 +19,7 @@ interface Vacancy {
 }
 
 export default function VacantPosts() {
+  const { user } = useAuth();
   const [openDialog, setOpenDialog] = useState(false);
   const [newVacancy, setNewVacancy] = useState({
     name: "",
@@ -84,13 +86,15 @@ export default function VacantPosts() {
           {/* دکمه افزودن بست */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
             <h2 className="text-xl md:text-2xl font-bold text-slate-800">مدیریت بست‌های خالی</h2>
-            <Button 
-              onClick={() => setOpenDialog(true)}
-              className="w-full sm:w-auto bg-hospital-green-600 hover:bg-hospital-green-700"
-            >
-              <Plus className="ml-2 h-4 w-4" />
-              افزودن بست جدید
-            </Button>
+            {user?.role === "admin" && (
+              <Button 
+                onClick={() => setOpenDialog(true)}
+                className="w-full sm:w-auto bg-hospital-green-600 hover:bg-hospital-green-700"
+              >
+                <Plus className="ml-2 h-4 w-4" />
+                افزودن بست جدید
+              </Button>
+            )}
           </div>
 
           {/* جدول نمایش بست‌ها */}
