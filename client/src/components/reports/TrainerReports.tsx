@@ -28,15 +28,19 @@ export default function TrainerReportPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
 
-  const { data: trainers = [], isLoading } = useQuery<Trainer[]>({
+  const { data: trainers = [], isLoading, error } = useQuery<Trainer[]>({
     queryKey: ["/api/trainers"],
     queryFn: async () => {
       const res = await fetch("/api/trainers");
-      return res.json();
+      if (!res.ok) {
+        throw new Error("Failed to fetch trainers");
+      }
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
     },
   });
 
-  const filteredTrainers = trainers.filter((trainer) => {
+  const filteredTrainers = Array.isArray(trainers) ? trainers.filter((trainer) => {
     const fullName = `${trainer.name} ${trainer.lastName}`.toLowerCase();
     const matchesSearch =
       fullName.includes(searchTerm.toLowerCase()) ||
@@ -44,9 +48,9 @@ export default function TrainerReportPage() {
     const matchesDepartment =
       departmentFilter === "all" || trainer.department === departmentFilter;
     return matchesSearch && matchesDepartment;
-  });
+  }) : [];
 
-  const departments = Array.from(new Set(trainers.map((t) => t.department)));
+  const departments = Array.isArray(trainers) ? Array.from(new Set(trainers.map((t) => t.department))) : [];
 
   if (isLoading) {
     return (
@@ -61,6 +65,20 @@ export default function TrainerReportPage() {
                 <div key={i} className="h-32 bg-slate-200 rounded"></div>
               ))}
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <Sidebar />
+        <div className="p-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+            <p className="text-red-600 font-semibold">خطا در بارگذاری اطلاعات ترینرها</p>
+            <p className="text-red-500 text-sm mt-2">لطفاً بعداً دوباره تلاش کنید</p>
           </div>
         </div>
       </div>
