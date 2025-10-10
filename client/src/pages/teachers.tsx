@@ -16,6 +16,7 @@ import TeacherFormDialog from "@/components/forms/teacher-form-dialog";
 import { Teacher, InsertTeacher, insertTeacherSchema } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import Sidebar from "@/components/layout/sidebar";
+import Header from "@/components/layout/header";
 import { useAuth } from "@/hooks/useAuth";
 
 export default function Teachers() {
@@ -145,9 +146,10 @@ export default function Teachers() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-slate-50 ">
+      <div className="min-h-screen bg-slate-50">
+        <Header />
         <Sidebar />
-        <div className="mr-64 p-6">
+        <div className="mr-0 md:mr-64 pt-16 md:pt-20 p-4 md:p-6">
           <Card>
             <CardContent className="p-6">
               <p className="text-red-600">خطا در بارگذاری اطلاعات استادان</p>
@@ -160,12 +162,13 @@ export default function Teachers() {
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <Header />
       <Sidebar />
-      <div className="mr-64 p-6 space-y-6">
-        <div className="mb-6">
+      <div className="mr-0 md:mr-64 pt-16 md:pt-20 p-4 md:p-6 space-y-4 md:space-y-6">
+        <div className="mb-4 md:mb-6">
           {/* هدر */}
           <h1
-            className="text-3xl font-bold tracking-tight mb-4"
+            className="text-xl md:text-3xl font-bold tracking-tight mb-4"
             data-testid="heading-teachers"
           >
             مدیریت استادان

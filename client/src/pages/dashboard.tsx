@@ -38,7 +38,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-slate-50">
       <Header />
       <Sidebar />
-      <div className="ml-64">
+      <div className="mr-0 md:mr-64 pt-16 md:pt-20 p-4 md:p-6">
         {/* Content rendered by individual pages */}
       </div>
     </div>

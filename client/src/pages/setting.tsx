@@ -80,12 +80,12 @@ const filteredUsers = users.filter(
     <div className="min-h-screen bg-slate-50">
       <Header />
       <Sidebar />
-      <div className="mr-64 pt-20 p-6 space-y-6">
+      <div className="mr-0 md:mr-64 pt-16 md:pt-20 p-4 md:p-6 space-y-4 md:space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">مدیریت کاربران</h1>
-            <p className="text-slate-600 dark:text-slate-400">مدیریت حساب‌های کاربران سیستم</p>
+            <h1 className="text-xl md:text-3xl font-bold tracking-tight">مدیریت کاربران</h1>
+            <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">مدیریت حساب‌های کاربران سیستم</p>
           </div>
           {user?.role === "admin" && (
             <Button

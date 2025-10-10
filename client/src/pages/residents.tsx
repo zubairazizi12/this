@@ -5,6 +5,7 @@ import TrainerRegistrationForm from "@/components/forms/TrainerRegistrationForm"
 import TrainerDetails from "@/components/residents/resident-details";
 import TrainerDetailsModal from "@/components/residents/ResidentDetailsModal";
 import TrainerActionModal from "@/components/residents/TrainerActionModal";
+import Header from "@/components/layout/header";
 
 import {
   Select,
@@ -108,8 +109,9 @@ export default function TrainersPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50">
+        <Header />
         <Sidebar />
-        <div className="mr-64 p-6 ">
+        <div className="mr-0 md:mr-64 p-4 md:p-6">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-slate-200 rounded w-64"></div>
             <div className="h-20 bg-slate-200 rounded"></div>
@@ -125,13 +127,14 @@ export default function TrainersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-16">
+    <div className="min-h-screen bg-slate-50">
+      <Header />
       <Sidebar />
-      <div className="mr-64 p-6">
+      <div className="mr-0 md:mr-64 pt-16 md:pt-20 p-4 md:p-6">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b border-slate-200 -m-6 mb-6">
-          <div className="px-6 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-slate-900">
+        <header className="bg-white shadow-sm border-b border-slate-200 -m-4 md:-m-6 mb-4 md:mb-6">
+          <div className="px-4 md:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <h1 className="text-xl md:text-2xl font-semibold text-slate-900">
               مدیریت ترینرها
             </h1>
             {user?.role === "admin" && (
@@ -193,20 +196,21 @@ export default function TrainersPage() {
         </div>
 
         {/* Table */}
-        <table className="min-w-full border border-slate-200 text-sm">
-          <thead className="bg-slate-100 text-slate-700 font-semibold">
-            <tr>
-              <th className="p-2 text-center">تصویر</th>
-              <th className="p-2 text-center">نام</th>
-              <th className="p-2 text-center">تخلص</th>
-              <th className="p-2 text-center">آیدی</th>
-              <th className="p-2 text-center">دپارتمان</th>
-              <th className="p-2 text-center">اضافه نمودن فرم</th>
-              <th className="p-2 text-center">جزئیات</th>
-              <th className="p-2 text-center">اکشن</th>
-            </tr>
-          </thead>
-          <tbody>
+        <div className="overflow-x-auto rounded-lg shadow-md border border-slate-200">
+          <table className="min-w-full border-collapse text-sm">
+            <thead className="bg-slate-100 text-slate-700 font-semibold">
+              <tr>
+                <th className="p-2 text-center">تصویر</th>
+                <th className="p-2 text-center">نام</th>
+                <th className="p-2 text-center">تخلص</th>
+                <th className="p-2 text-center">آیدی</th>
+                <th className="p-2 text-center">دپارتمان</th>
+                <th className="p-2 text-center">اضافه نمودن فرم</th>
+                <th className="p-2 text-center">جزئیات</th>
+                <th className="p-2 text-center">اکشن</th>
+              </tr>
+            </thead>
+            <tbody>
             {filteredTrainers.map((trainer) => (
               <tr key={trainer._id} className="border-b hover:bg-slate-50">
                 <td className="p-2 text-center">
@@ -309,8 +313,9 @@ export default function TrainersPage() {
                 </td>
               </tr>
             ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
 
         {/* Modals */}
 

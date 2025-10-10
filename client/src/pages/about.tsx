@@ -44,13 +44,13 @@ export default function AboutUs() {
     <div className="min-h-screen bg-slate-50">
       <Header />
       <Sidebar />
-      <div className="mr-64 pt-20 p-6 space-y-6">
+      <div className="mr-0 md:mr-64 pt-16 md:pt-20 p-4 md:p-6 space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-emerald-700 to-green-600 bg-clip-text text-transparent">
+        <div className="text-center mb-6 md:mb-8">
+          <h1 className="text-xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-emerald-700 to-green-600 bg-clip-text text-transparent">
             درباره ما
           </h1>
-          <p className="text-slate-600 mt-2 text-sm max-w-2xl mx-auto">
+          <p className="text-slate-600 mt-2 text-xs md:text-sm max-w-2xl mx-auto">
             معرفی شرکت‌های گروه و خدمات متنوعی که ارائه می‌دهیم
           </p>
         </div>
