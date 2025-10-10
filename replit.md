@@ -11,18 +11,29 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes
 
 ### October 10, 2025
-**Trainer Actions System:**
-- ✅ Created TrainerAction database model with description and selected forms fields
-- ✅ Implemented API endpoints for creating, retrieving, and deleting trainer actions
-- ✅ Added authentication middleware (isDemoAuthenticated) to protect action endpoints
-- ✅ Built TrainerActionModal component with:
+**Trainer Actions File Upload System:**
+- ✅ Updated TrainerAction database model to support file uploads instead of form selections
+  - Changed from `selectedForms` array to `files` array with metadata (filename, originalName, path, size)
+- ✅ Implemented secure file upload with Multer middleware:
+  - Support for up to 10 files per action (10MB max per file)
+  - Files stored in `uploads/trainer-actions/` directory
+  - Secure download endpoint with path traversal protection
+  - Automatic file cleanup when action is deleted
+- ✅ Enhanced TrainerActionModal component:
   - Description text area for action details
-  - Multi-select checkboxes for associating multiple forms (J, F, D, I, G, E, C, H, K)
-  - Display of previously saved actions with delete functionality
-  - Real-time updates using React Query
-- ✅ Connected action button in residents/trainers page to open modal
-- ✅ Added actions display in reports section (TrainerDetails component)
-- ✅ Trainer actions now accessible via ID in both training and reports sections
+  - Drag-and-drop file upload interface supporting multiple files
+  - Display of uploaded files with download functionality
+  - File size formatting and validation
+  - Admin-only access to create and delete actions (viewers have read-only access)
+- ✅ Role-based access control enforced:
+  - Submit action button visible only to admins
+  - Delete action button visible only to admins
+  - Viewers can view actions and download files but cannot create/delete
+- ✅ Security measures implemented:
+  - Filename sanitization to prevent path traversal attacks
+  - Normalized path checks to ensure files stay within upload directory
+  - Route ordering fixed to ensure download endpoint accessibility
+- ✅ Added uploads/ to .gitignore to prevent committing uploaded files
 - ✅ All changes tested and verified by architect review
 
 **Enhanced Viewer Role Restrictions:**
