@@ -1,12 +1,44 @@
 import express, { Request, Response } from "express";
-import Trainer, { ITrainer } from "../models/trainerModel";
+import Trainer from "../models/trainerModel";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
+
+// 🔹 ایجاد __filename و __dirname در ES Module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const router = express.Router();
 
-// Create Trainer
-router.post("/", async (req: Request, res: Response) => {
+// 🔹 تنظیمات multer برای ذخیره عکس
+const storage = multer.diskStorage({
+  destination: (_req, _file, cb) => {
+    const uploadDir = path.join(__dirname, "../uploads/trainers");
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+    cb(null, uploadDir);
+  },
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const filename = `${Date.now()}-${file.fieldname}${ext}`;
+    cb(null, filename);
+  },
+});
+
+const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  if (file.mimetype.startsWith("image/")) cb(null, true);
+  else cb(new Error("فقط فایل‌های تصویری مجاز هستند"));
+};
+
+const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } }); // حداکثر 5MB
+
+// ➕ Create Trainer with optional photo
+router.post("/", upload.single("photo"), async (req: Request, res: Response) => {
   try {
-    const newTrainer = new Trainer(req.body);
+    const data = req.body;
+    if (req.file) data.photo = `/uploads/trainers/${req.file.filename}`;
+
+    const newTrainer = new Trainer(data);
     const savedTrainer = await newTrainer.save();
     res.status(201).json(savedTrainer);
   } catch (error) {
@@ -15,7 +47,7 @@ router.post("/", async (req: Request, res: Response) => {
   }
 });
 
-// Get all Trainers
+// 📋 Get all Trainers
 router.get("/", async (_req: Request, res: Response) => {
   try {
     const trainers = await Trainer.find().lean();
@@ -26,7 +58,7 @@ router.get("/", async (_req: Request, res: Response) => {
   }
 });
 
-// Get Trainer by ID
+// 🔍 Get Trainer by ID
 router.get("/:id", async (req: Request, res: Response) => {
   try {
     const trainer = await Trainer.findById(req.params.id).lean();
@@ -38,11 +70,15 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// Update Trainer by ID
-router.put("/:id", async (req: Request, res: Response) => {
+// ✏️ Update Trainer with optional photo
+router.put("/:id", upload.single("photo"), async (req: Request, res: Response) => {
   try {
-    const updatedTrainer = await Trainer.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const data = req.body;
+    if (req.file) data.photo = `/uploads/trainers/${req.file.filename}`;
+
+    const updatedTrainer = await Trainer.findByIdAndUpdate(req.params.id, data, { new: true });
     if (!updatedTrainer) return res.status(404).json({ message: "ترینر یافت نشد" });
+
     res.status(200).json(updatedTrainer);
   } catch (error) {
     console.error("Error updating trainer:", error);
@@ -50,11 +86,18 @@ router.put("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// Delete Trainer by ID
+// 🗑️ Delete Trainer by ID
 router.delete("/:id", async (req: Request, res: Response) => {
   try {
     const deletedTrainer = await Trainer.findByIdAndDelete(req.params.id);
     if (!deletedTrainer) return res.status(404).json({ message: "ترینر یافت نشد" });
+
+    // حذف عکس از سرور در صورت وجود
+    if (deletedTrainer.photo) {
+      const photoPath = path.join(__dirname, "..", deletedTrainer.photo);
+      if (fs.existsSync(photoPath)) fs.unlinkSync(photoPath);
+    }
+
     res.status(200).json({ message: "ترینر حذف شد" });
   } catch (error) {
     console.error("Error deleting trainer:", error);

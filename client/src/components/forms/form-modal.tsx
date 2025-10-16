@@ -33,6 +33,7 @@ import RotationForm from "@/components/forms/formI";
 interface FormModalProps {
   form: Form;
   onClose: () => void;
+  trainerId?: string; // 👈 اضافه کن
 }
 
 const FORM_TITLES: Record<string, string> = {
@@ -47,12 +48,13 @@ const FORM_TITLES: Record<string, string> = {
   K: "Final Competency Evaluation",
 };
 
-import { useTrainer } from "@/context/TrainerContext";
-
-export default function FormModal({ form, onClose }: FormModalProps) {
+export default function FormModal({
+  form,
+  onClose,
+  trainerId,
+}: FormModalProps) {
   if (!form) return null; // ← اینجا اضافه کنید
   const { user } = useAuth();
-  const { trainerId } = useTrainer(); // 👈 اینجا trainerId گرفتیم
   const [formData, setFormData] = useState((form.formData as any) || {});
 
   const isReadOnly = user?.role !== "admin";
@@ -67,23 +69,23 @@ export default function FormModal({ form, onClose }: FormModalProps) {
   const renderFormContent = () => {
     switch (form.formType) {
       case "J":
-        return <TeacherActivityForm />;
+        return <TeacherActivityForm trainerIdProp={trainerId} />;
       case "F":
-        return <ChecklistForm />;
+        return <ChecklistForm trainerIdProp={trainerId} />;
       case "I":
-        return <RotationForm />;
+        return <RotationForm trainerIdProp={trainerId} />;
       case "H":
-        return <EvaluationFormHStyled />;
+        return <EvaluationFormHStyled trainerIdProp={trainerId} />;
       case "E":
-        return <EvaluationFormE />;
+        return <EvaluationFormE trainerIdProp={trainerId} />;
       case "D":
-        return <EvaluationFormD />;
+        return <EvaluationFormD trainerIdProp={trainerId} />;
       case "K":
-        return <MonographEvaluationForm />;
+        return <MonographEvaluationForm trainerIdProp={trainerId} />;
       case "G":
-        return <EvaluationFormG />;
+        return <EvaluationFormG trainerIdProp={trainerId} />;
       case "C":
-        return <MonographEvaluationFormC />;
+        return <MonographEvaluationFormC trainerIdProp={trainerId} />;
       default:
         return (
           <div className="space-y-4">

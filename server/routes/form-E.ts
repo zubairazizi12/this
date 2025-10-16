@@ -1,15 +1,22 @@
+// routes/evaluationFormERoutes.ts
 import express from "express";
-import {
-  createEvaluationFormE,
-  getEvaluationFormsE,
-} from "../controllers/form-E";
+import { EvaluationFormEController } from "../controllers/form-E";
 
 const router = express.Router();
 
-// POST ایجاد فرم جدید
-router.post("/", createEvaluationFormE);
+// 🔹 ایجاد فرم جدید
+router.post("/", EvaluationFormEController.create);
 
-// GET دریافت فرم‌ها بر اساس trainerId
-router.get("/", getEvaluationFormsE);
+// 🔹 دریافت همه فرم‌ها یا فیلتر بر اساس trainerId
+router.get("/", EvaluationFormEController.getAll);
+
+// 🔹 دریافت فرم بر اساس ID
+router.get("/:id", EvaluationFormEController.getById);
+
+// 🔹 بروزرسانی فرم بر اساس ID
+router.put("/:id", EvaluationFormEController.update);
+
+// 🔹 حذف فرم بر اساس ID
+router.delete("/:id", EvaluationFormEController.delete);
 
 export default router;

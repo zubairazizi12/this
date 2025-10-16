@@ -17,6 +17,7 @@ import FormHDetails from "@/components/residents/form-details/formH-detail";
 import FormKDetails from "@/components/residents/form-details/formK-detail";
 import RotationForm from "@/components/residents/form-details/formI-detail";
 import TeacherActivityForm from "@/components/residents/form-details/formJ-detail";
+import ChecklistDisplay from "./form-details/formF-detail";
 
 // تعریف انواع فرم‌ها
 const FORM_TYPES = [
@@ -54,24 +55,17 @@ export default function TrainerDetails({
 
   return (
     <div className="relative bg-white rounded-lg shadow-lg border border-slate-200 p-6">
-      {/* دکمه بستن */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="absolute top-4 right-4"
-        onClick={onClose}
-      >
-        <X className="h-4 w-4" />
-      </Button>
-
       {/* ردیف بالا: عکس + دکمه فرم‌ها + اکشن */}
       <div className="flex items-center justify-between mb-4 w-full">
         <div className="flex-shrink-0 w-24 h-24 rounded-full border border-slate-300 overflow-hidden">
           {trainer.profileImageUrl ? (
             <img
-              src={trainer.profileImageUrl}
-              alt={`${trainer.name} ${trainer.lastName}`}
-              className="w-full h-full object-cover"
+              src={
+                trainer.photo
+                  ? `http://localhost:5000${trainer.photo}`
+                  : "/assets/img/default-avatar.png"
+              }
+              className="w-12 h-12 rounded-full mx-auto"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-slate-200 text-slate-500">
@@ -152,50 +146,44 @@ export default function TrainerDetails({
 
           {selectedForm === "C" && (
             <FormCDetails
-              residentId={trainerId}
-              onClose={() => setSelectedForm(null)}
-            />
-          )}
-          {selectedForm === "I" && (
-            <RotationForm
               trainerId={trainerId}
               onClose={() => setSelectedForm(null)}
             />
           )}
+          {selectedForm === "I" && <RotationForm trainerId={trainerId} />}
           {selectedForm === "J" && (
-            <TeacherActivityForm
-              trainerId={trainerId}
-              onClose={() => setSelectedForm(null)}
-            />
+            <TeacherActivityForm trainerId={trainerId} />
           )}
+
+          {selectedForm === "F" && <ChecklistDisplay trainerId={trainerId} />}
           {selectedForm === "D" && (
             <FormDDetails
-              residentId={trainerId}
+              trainerId={trainerId}
               onClose={() => setSelectedForm(null)}
             />
           )}
           {selectedForm === "E" && (
             <FormEDetails
-              residentId={trainerId}
+              trainerId={trainerId}
               onClose={() => setSelectedForm(null)}
             />
           )}
           {selectedForm === "G" && (
             <FormGDetails
-              residentId={trainerId}
+              trainerId={trainerId}
               onClose={() => setSelectedForm(null)}
             />
           )}
           {selectedForm === "H" && (
             <FormHDetails
-              residentId={trainerId}
+              trainerId={trainerId}
               onClose={() => setSelectedForm(null)}
             />
           )}
 
           {selectedForm === "K" && (
             <FormKDetails
-              residentId={trainerId} // یا residentId
+              trainerId={trainerId} // یا trainerId
               onClose={() => setSelectedForm(null)}
             />
           )}

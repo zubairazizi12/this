@@ -10,11 +10,22 @@ import formHRoutes from "./routes/form-H";
 import monographEvaluationRoutes from "./routes/form-k";
 import rotationFormRoutes from "./routes/form-I";
 import { teacherActivityRoutes } from "./routes/form-J";
+import path from "path";
+import { fileURLToPath } from "url";
 const app = express();
 
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 // Parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// 🟢 سرو کردن فایل‌های آپلود شده به صورت استاتیک
+// The import statement for 'path' has been removed as it is already imported.
+import { trainerRoutes } from "./routes/trainerRoutes"; // مسیر روتر ترینر
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 
 // API routes
 app.use("/api/monograph", monographRoutes);
@@ -25,6 +36,10 @@ app.use("/api/evaluationFormG", evaluationFormGRoutes);
 app.use("/api/monographEvaluation", monographEvaluationRoutes);
 app.use("/api/rotation-form", rotationFormRoutes);
 app.use("/api/teacher-activities", teacherActivityRoutes);
+
+// اضافه کردن ترینر
+app.use("/api/trainers", trainerRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Logging middleware for API responses
 app.use((req, res, next) => {

@@ -8,8 +8,8 @@ interface ITrainingYear {
 
 export interface IEvaluationFormH extends Document {
   trainer: Types.ObjectId; // ⬅️ رفرنس به Trainer
-  residentName: string;
-  fatherName: string;
+  Name: string;
+  parentType: string;
   department: string;
   trainingYears: ITrainingYear[];
   averageScore: number;
@@ -30,8 +30,8 @@ const EvaluationFormHSchema = new Schema<IEvaluationFormH>(
       ref: "Trainer", // ⬅️ به مدل Trainer وصل می‌شود
       required: true,
     },
-    residentName: { type: String, required: true },
-    fatherName: { type: String, required: true },
+    Name: { type: String, required: true },
+    parentType: { type: String, required: true },
     department: { type: String, required: true },
     trainingYears: [TrainingYearSchema],
     averageScore: { type: Number, default: 0 },

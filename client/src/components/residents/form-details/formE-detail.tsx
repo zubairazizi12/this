@@ -1,154 +1,228 @@
-import { useQuery } from "@tanstack/react-query";
+// components/forms/FormEDetailsTable.tsx
+import React, { useEffect, useState, useRef } from "react";
 import * as XLSX from "xlsx";
-import { useTrainer } from "../../../context/TrainerContext";
 
 interface FormEDetailsProps {
-  residentId: string;
-  onClose: () => void;
+  trainerId: string;
+  onClose?: () => void;
 }
 
-export default function FormEDetails({ residentId, onClose }: FormEDetailsProps) {
-  const { trainerId } = useTrainer();
+interface Score {
+  score: number;
+  teacherName: string;
+}
 
-  const { data, isLoading } = useQuery<any>({
-    queryKey: ["/api/evaluationFormE", trainerId, residentId],
-    queryFn: () =>
-      fetch(`/api/evaluationFormE?trainerId=${trainerId}`).then((r) =>
-        r.json()
-      ),
-  });
+interface FormE {
+  _id: string;
+  trainerId: string;
+  trainer: string;
+  Name: string;
+  parentType: string;
+  trainingYear: string;
+  incidentTitle: string;
+  date: string;
+  scores: Score[];
+  averageScore: number;
+}
 
-  if (isLoading) return <div>در حال بارگذاری...</div>;
-  if (!data || !data.length) return <div>فرم پیدا نشد.</div>;
+export default function FormEDetails({ trainerId, onClose }: FormEDetailsProps) {
+  const [data, setData] = useState<FormE | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
 
-  const form = data[0];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/evaluationFormE?trainerId=${trainerId}`);
+        if (!res.ok) throw new Error("خطا در دریافت داده‌ها");
+        const result = await res.json();
+        const form = Array.isArray(result) ? result[0] : result;
+        setData({ ...form, scores: form.scores || [] });
+      } catch (err) {
+        console.error(err);
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (trainerId) fetchData();
+  }, [trainerId]);
 
-  const printPDF = () => window.print();
-
-  const exportExcel = () => {
-    const wsData: any[] = [
-      ["نام", "نام پدر", "سال تریننگ", "تاریخ"],
-      [form.residentName, form.fatherName, form.trainingYear, form.date],
-      [],
-      ["عنوان واقعه", "نمره داده شده", "نام استاد", "ملاحظات"],
-      // 👇 همه نمرات را در اکسل می‌ریزیم
-      ...form.scores.map((s: any) => [
-        form.incidentTitle,
-        s.score,
-        s.teacherName,
-        s.notes || "",
-      ]),
-      [],
-      ["اوسط نمرات", form.averageScore],
-    ];
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, "FormE");
-    XLSX.writeFile(wb, `FormE_${form.residentName}.xlsx`);
+  const handleChangeMainField = (field: keyof FormE, value: string | number) => {
+    if (!data) return;
+    setData({ ...data, [field]: value });
   };
 
+  const handleChangeScore = (idx: number, field: keyof Score, value: string | number) => {
+    if (!data) return;
+    const newScores = [...data.scores];
+    newScores[idx] = { ...newScores[idx], [field]: value };
+    setData({ ...data, scores: newScores });
+  };
+
+  const handleSave = async () => {
+    if (!data) return;
+    try {
+      const res = await fetch(`/api/evaluationFormE/${data._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("خطا در ذخیره تغییرات");
+      const result = await res.json();
+      setData(result.updated);
+      setEditing(false);
+      alert("✅ تغییرات با موفقیت ذخیره شد");
+    } catch (err) {
+      console.error(err);
+      alert("❌ خطا در ذخیره تغییرات");
+    }
+  };
+
+  const handlePrint = () => {
+    if (!printRef.current) return;
+    const printContents = printRef.current.innerHTML;
+    const printWindow = window.open("", "_blank", "width=1000,height=600");
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Form E</title>
+            <style>
+              body { font-family:sans-serif; direction:rtl; margin:20px; }
+              .personal-info { display: flex; justify-content: space-between; margin-bottom:24px; }
+              .personal-info > div { flex: 1; text-align:center; }
+              table { width:100%; border-collapse:collapse; margin-top:16px; }
+              th, td { border:1px solid #000; padding:8px; text-align:center; }
+              th { background:#f0f0f0; }
+            </style>
+          </head>
+          <body>
+            ${printContents}
+            <script>
+              window.onload = function() { window.print(); window.close(); }
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
+  const handleExportExcel = () => {
+    if (!data) return;
+    const wb = XLSX.utils.book_new();
+
+    const detailsWS = XLSX.utils.json_to_sheet([
+      { فیلد: "نام", مقدار: data.Name },
+      { فیلد: "نام پدر", مقدار: data.parentType },
+      { فیلد: "سال تریننگ", مقدار: data.trainingYear },
+      { فیلد: "تاریخ", مقدار: data.date },
+    ]);
+    XLSX.utils.book_append_sheet(wb, detailsWS, "مشخصات");
+
+    const scoresWS = XLSX.utils.json_to_sheet(
+      Array.from({ length: 6 }).map((_, idx) => ({
+        "عنوان واقعه": idx === 0 ? data.incidentTitle : "",
+        "نمره داده شده": data.scores[idx]?.score ?? "",
+        "نام استاد": data.scores[idx]?.teacherName ?? "",
+        "امضای استاد": "",
+        "ملاحظات": "",
+      }))
+    );
+    XLSX.utils.book_append_sheet(wb, scoresWS, "FormE");
+    XLSX.writeFile(wb, `FormE_${data.Name}.xlsx`);
+  };
+
+  if (loading) return <div className="p-4 text-center">در حال بارگذاری...</div>;
+  if (!data) return <div className="p-4 text-center">فرمی برای این ترینر موجود نیست</div>;
+
   return (
-    <div className="p-4 text-sm">
-      <h3 className="text-lg font-bold mb-4 text-center">
-        فرم ارزشیابی سالانه دستیار
-      </h3>
-
-      {/* بالا */}
-      <div className="grid grid-cols-4 gap-2 mb-4">
-        <div className="border px-2 py-1">نام: {form.residentName}</div>
-        <div className="border px-2 py-1">نام پدر: {form.fatherName}</div>
-        <div className="border px-2 py-1">سال تریننگ: {form.trainingYear}</div>
-        <div className="border px-2 py-1">تاریخ: {form.date}</div>
-      </div>
-
-      {/* جدول اصلی */}
-      <div className="grid grid-cols-4 gap-0 mb-4 border border-black">
-        {/* تیترها */}
-        <div className="col-span-1 border-r border-black px-2 py-1 font-bold text-center">
-          عنوان واقعه
-        </div>
-        <div className="border-r border-black px-2 py-1 font-bold text-center">
-          نمره داده شده
-        </div>
-        <div className="border-r border-black px-2 py-1 font-bold text-center">
-          نام استاد
-        </div>
-        <div className="px-2 py-1 font-bold text-center">ملاحظات</div>
-
-        {/* عنوان واقعه (یک ستون عمودی) */}
-        <div className="col-span-1 row-span-5 border-r border-black px-2 py-1 h-40 align-top">
-          {form.incidentTitle}
-        </div>
-
-        {/* ستون نمرات */}
-        <div className="border-r border-black px-2 py-1">
-          {[...Array(5)].map((_, i) => (
-            <div
-              key={i}
-              className="h-8 border-b border-dotted last:border-0 flex items-center"
-            >
-              {form.scores?.[i]?.score || ""}
-            </div>
-          ))}
-        </div>
-
-        {/* ستون اساتید */}
-        <div className="border-r border-black px-2 py-1">
-          {[...Array(5)].map((_, i) => (
-            <div
-              key={i}
-              className="h-8 border-b border-dotted last:border-0 flex items-center"
-            >
-              {form.scores?.[i]?.teacherName || ""}
-            </div>
-          ))}
-        </div>
-
-        {/* ستون ملاحظات */}
-        <div className="px-2 py-1">
-          {[...Array(5)].map((_, i) => (
-            <div
-              key={i}
-              className="h-8 border-b border-dotted last:border-0 flex items-center"
-            >
-              {form.scores?.[i]?.notes || ""}
-            </div>
-          ))}
+    <div className="p-4">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Form E - فرم ارزشیابی سالانه دستیار</h2>
+        <div className="space-x-2">
+          {editing ? (
+            <button onClick={handleSave} className="bg-green-600 text-white px-3 py-1 rounded">ذخیره</button>
+          ) : (
+            <>
+              <button onClick={() => setEditing(true)} className="bg-blue-600 text-white px-3 py-1 rounded">ویرایش</button>
+              <button onClick={handlePrint} className="bg-green-600 text-white px-3 py-1 rounded">چاپ</button>
+              <button onClick={handleExportExcel} className="bg-yellow-500 text-white px-3 py-1 rounded">Excel</button>
+            </>
+          )}
+          {onClose && <button onClick={onClose} className="bg-gray-500 text-white px-3 py-1 rounded">بستن</button>}
         </div>
       </div>
 
-      {/* اوسط نمرات */}
-      <div className="border px-2 py-2 mb-6">
-        اوسط نمرات: <span className="font-bold">{form.averageScore}</span>
-      </div>
+      <div ref={printRef} className="overflow-auto border rounded-lg p-4 bg-white">
+        {/* اطلاعات شخصی در یک ردیف */}
+        <div className="personal-info">
+          <div>
+            <label className="font-medium">نام</label>
+            {editing ? (
+              <input type="text" value={data.Name} onChange={(e) => handleChangeMainField("Name", e.target.value)} className="w-full border px-2 py-1 rounded" />
+            ) : <div>{data.Name}</div>}
+          </div>
+          <div>
+            <label className="font-medium">نام پدر</label>
+            {editing ? (
+              <input type="text" value={data.parentType} onChange={(e) => handleChangeMainField("parentType", e.target.value)} className="w-full border px-2 py-1 rounded" />
+            ) : <div>{data.parentType}</div>}
+          </div>
+          <div>
+            <label className="font-medium">سال تریننگ</label>
+            {editing ? (
+              <input type="text" value={data.trainingYear} onChange={(e) => handleChangeMainField("trainingYear", e.target.value)} className="w-full border px-2 py-1 rounded" />
+            ) : <div>{data.trainingYear}</div>}
+          </div>
+          <div>
+            <label className="font-medium">تاریخ</label>
+            {editing ? (
+              <input type="date" value={data.date} onChange={(e) => handleChangeMainField("date", e.target.value)} className="w-full border px-2 py-1 rounded" />
+            ) : <div>{data.date}</div>}
+          </div>
+        </div>
 
-      {/* امضاءها */}
-      <div className="grid grid-cols-3 gap-4 text-center mt-8">
-        <div className="border-t border-black pt-2">رئیس دیپارتمنت</div>
-        <div className="border-t border-black pt-2">آمر تریننگ</div>
-        <div className="border-t border-black pt-2">رئیس شفاخانه</div>
-      </div>
-
-      {/* دکمه‌ها */}
-      <div className="mt-6 flex gap-2 print:hidden">
-        <button
-          className="bg-blue-500 text-white px-3 py-1 rounded"
-          onClick={printPDF}
-        >
-          چاپ PDF
-        </button>
-        <button
-          className="bg-green-500 text-white px-3 py-1 rounded"
-          onClick={exportExcel}
-        >
-          چاپ Excel
-        </button>
-        <button
-          className="bg-gray-500 text-white px-3 py-1 rounded"
-          onClick={onClose}
-        >
-          بستن
-        </button>
+        {/* جدول نمرات */}
+        <table className="w-full border-collapse border border-gray-400 text-center">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border p-2">عنوان واقعه</th>
+              <th className="border p-2">نمره داده شده</th>
+              <th className="border p-2">نام استاد</th>
+              <th className="border p-2">امضای استاد</th>
+              <th className="border p-2">ملاحظات</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <tr key={idx}>
+                {idx === 0 && (
+                  <td rowSpan={6} className="border p-2 align-top">{data.incidentTitle}</td>
+                )}
+                <td className="border p-2">
+                  {editing ? (
+                    <input type="number" min={0} max={100} value={data.scores[idx]?.score ?? ""} onChange={(e) => handleChangeScore(idx, "score", Number(e.target.value))} className="w-full border px-2 py-1 rounded" />
+                  ) : data.scores[idx]?.score ?? ""}
+                </td>
+                <td className="border p-2">
+                  {editing ? (
+                    <input type="text" value={data.scores[idx]?.teacherName ?? ""} onChange={(e) => handleChangeScore(idx, "teacherName", e.target.value)} className="w-full border px-2 py-1 rounded" />
+                  ) : data.scores[idx]?.teacherName ?? ""}
+                </td>
+                <td className="border p-2"></td>
+                <td className="border p-2"></td>
+              </tr>
+            ))}
+            <tr>
+              <td className="border p-2 font-semibold">اوسط نمرات</td>
+              <td className="border p-2" colSpan={3}>{data.averageScore}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -14,8 +14,8 @@ interface IScoreRow {
 
 // اطلاعات شخصی
 interface IPersonalInfo {
-  residentName: string;
-  fatherName: string;
+  Name: string;
+  parentType: string;
   trainingYear: string;
   year: string;
   department: string;
@@ -40,8 +40,8 @@ const ScoreRowSchema = new Schema<IScoreRow>({
 });
 
 const PersonalInfoSchema = new Schema<IPersonalInfo>({
-  residentName: { type: String, required: true },
-  fatherName: { type: String, required: true },
+  Name: { type: String, required: true },
+  parentType: { type: String, required: true },
   trainingYear: { type: String, required: true },
   year: { type: String, required: true },
   department: { type: String, required: true },

@@ -1,36 +1,66 @@
 import { Request, Response } from "express";
 import TrainerModel from "../models/trainerModel";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
+// 🟢 تنظیم مسیر و نام فایل‌ها
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, "../uploads/trainers");
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    const filename = `${Date.now()}-${file.fieldname}${ext}`;
+    cb(null, filename);
+  },
+});
+
+// 🟢 محدود کردن نوع فایل به تصاویر
+const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  if (file.mimetype.startsWith("image/")) {
+    cb(null, true);
+  } else {
+    cb(new Error("فقط فایل‌های تصویری مجاز هستند"));
+  }
+};
+
+export const upload = multer({ storage, fileFilter, limits: { fileSize: 5 * 1024 * 1024 } }); // حداکثر 5MB
+
+// 🟢 کنترلر
 export const TrainerController = {
-  // ➕ ایجاد ترینر جدید
+  // ➕ ایجاد ترینر جدید با عکس
   createTrainer: async (req: Request, res: Response) => {
     try {
-      const {
-        name,
-        lastName,
-        province,
-        department,
-        specialty,
-        email,
-        phoneNumber,
-      } = req.body;
+      const { file } = req; // فایل عکس
+      const data = req.body;
 
-      // ✅ اعتبارسنجی اولیه (حداقل فیلدهای ضروری)
+      // افزودن مسیر عکس به داده‌ها
+      if (file) {
+        data.photo = `/uploads/trainers/${file.filename}`;
+      }
+
+      // اعتبارسنجی اولیه
+      const { name, lastName, province, department, specialty } = data;
       if (!name || !lastName || !province || !department || !specialty) {
         return res.status(400).json({
           message: "لطفاً تمام فیلدهای ضروری (نام، تخلص، ولایت، دیپارتمنت، رشته) را تکمیل کنید",
         });
       }
 
-      // ✅ اگر ایمیل تکراری نباشد (اختیاری)
-      if (email) {
-        const existing = await TrainerModel.findOne({ email });
+      // بررسی ایمیل تکراری
+      if (data.email) {
+        const existing = await TrainerModel.findOne({ email: data.email });
         if (existing) {
           return res.status(409).json({ message: "این ایمیل قبلاً ثبت شده است" });
         }
       }
 
-      const newTrainer = await TrainerModel.create(req.body);
+      const newTrainer = await TrainerModel.create(data);
       res.status(201).json({
         message: "ترینر با موفقیت ایجاد شد",
         data: newTrainer,
@@ -66,12 +96,20 @@ export const TrainerController = {
     }
   },
 
-  // ✏️ بروزرسانی ترینر
+  // ✏️ بروزرسانی ترینر با امکان تغییر عکس
   updateTrainer: async (req: Request, res: Response) => {
     try {
+      const { file } = req;
+      const data = req.body;
+
+      // اگر عکس جدید ارسال شده باشد، مسیر جدید را جایگزین کن
+      if (file) {
+        data.photo = `/uploads/trainers/${file.filename}`;
+      }
+
       const updatedTrainer = await TrainerModel.findByIdAndUpdate(
         req.params.id,
-        req.body,
+        data,
         { new: true, runValidators: true }
       );
 
@@ -96,6 +134,13 @@ export const TrainerController = {
       if (!deletedTrainer) {
         return res.status(404).json({ message: "ترینر یافت نشد" });
       }
+
+      // حذف فایل عکس از سرور (در صورت وجود)
+      if (deletedTrainer.photo) {
+        const photoPath = path.join(__dirname, "..", deletedTrainer.photo);
+        if (fs.existsSync(photoPath)) fs.unlinkSync(photoPath);
+      }
+
       res.status(200).json({ message: "ترینر با موفقیت حذف شد" });
     } catch (error) {
       console.error("❌ Error deleting trainer:", error);

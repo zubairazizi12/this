@@ -1,155 +1,257 @@
-import { useQuery } from "@tanstack/react-query";
+// components/forms/FormHDetails.tsx
+import React, { useEffect, useState, useRef } from "react";
 import * as XLSX from "xlsx";
-import { useTrainer } from "../../../context/TrainerContext"; // ← مثلاً
+
+interface FormHDetailsProps {
+  trainerId: string;
+  onClose?: () => void;
+}
+
 interface TrainingYear {
   year: string;
   totalScore: number | string;
   instructor: string;
 }
 
-interface FormHDetailsProps {
-  residentId: string;
-  onClose: () => void;
+interface FormH {
+  _id: string;
+  trainerId: string;
+  trainer: string;
+  Name: string;
+  parentType: string;
+  department: string;
+  shiftDepartment: string;
+  programDirector: string;
+  trainingYears: TrainingYear[];
+  averageScore: number;
+  departmentHead?: string;
+  programHead?: string;
+  hospitalHead?: string;
 }
-export default function FormHDetails({
-  residentId,
-  onClose,
-}: FormHDetailsProps) {
-  const { trainerId } = useTrainer();
 
-  const { data = [], isLoading } = useQuery<any[]>({
-    queryKey: ["/api/evaluationFormH", trainerId],
-    queryFn: () =>
-      fetch(`/api/evaluationFormH?trainerId=${trainerId}`).then((r) =>
-        r.json()
-      ),
-  });
+export default function FormHDetails({ trainerId, onClose }: FormHDetailsProps) {
+  const [data, setData] = useState<FormH | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
 
-  if (isLoading) return <div>در حال بارگذاری...</div>;
-  if (!data.length) return <div>هیچ فرمی موجود نیست</div>;
-
-  // مقایسه با همان فیلد trainer
-  const form = data.find(
-    (f: any) => f.trainer === residentId || f.trainer?._id === residentId
-  );
-
-  if (!form) return <div>فرم مورد نظر پیدا نشد.</div>;
-
-  // آرایه کامل چهار سال
   const allYears = ["سال اول", "سال دوم", "سال سوم", "سال چهارم"];
-  const trainingYears: TrainingYear[] = allYears.map((y) => {
-    const found = (form.trainingYears || []).find(
-      (ty: TrainingYear) => ty.year === y
-    );
-    return found ? found : { year: y, totalScore: "", instructor: "" }; // اگر سال پر نشده بود، خالی قرار بده
-  });
 
-  const exportExcel = () => {
-    const wsData: any[] = [
-      ["مشخصات دستیار"],
-      ["نام", form.residentName],
-      ["نام پدر", form.fatherName],
-      ["دیپارتمنت", form.department],
-      [""],
-      ["سال ترینی", "مجموع نمرات", "نام استاد", "امضا استاد"],
-    ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/evaluationFormH?trainerId=${trainerId}`);
+        if (!res.ok) throw new Error("خطا در دریافت فرم H");
+        const result = await res.json();
+        const formData = Array.isArray(result) ? result[0] : result;
+        setData({ ...formData, trainingYears: formData.trainingYears || [] });
+      } catch (err) {
+        console.error(err);
+        setData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (trainerId) fetchData();
+  }, [trainerId]);
 
-    trainingYears.forEach((y) => {
-      wsData.push([y.year, y.totalScore, y.instructor, ""]);
-    });
+  const handleFieldChange = (field: keyof FormH, value: string) => {
+    if (!data) return;
+    setData({ ...data, [field]: value });
+  };
 
-    wsData.push(["", "اوسط نمرات", form.averageScore, ""]);
-    wsData.push(["", "", "امضای ریاست", ""]);
+  const handleYearChange = (idx: number, field: keyof TrainingYear, value: string | number) => {
+    if (!data) return;
+    const newYears = [...data.trainingYears];
+    newYears[idx] = { ...newYears[idx], [field]: value };
+    setData({ ...data, trainingYears: newYears });
+  };
 
+  const calculateAverage = () => {
+    if (!data || data.trainingYears.length === 0) return 0;
+    const validScores = data.trainingYears.map(y => typeof y.totalScore === "number" ? y.totalScore : 0);
+    if (validScores.length === 0) return 0;
+    const sum = validScores.reduce((acc, score) => acc + score, 0);
+    return Math.round((sum / validScores.length) * 100) / 100;
+  };
+
+  useEffect(() => {
+    if (data && editing) {
+      setData({ ...data, averageScore: calculateAverage() });
+    }
+  }, [data?.trainingYears, editing]);
+
+  const handleSave = async () => {
+    if (!data) return;
+    try {
+      setSaving(true);
+      const res = await fetch(`/api/evaluationFormH/${data._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error("خطا در ذخیره");
+      const result = await res.json();
+      setData(result.updated);
+      setEditing(false);
+      alert("✅ تغییرات ذخیره شد");
+    } catch (err) {
+      console.error(err);
+      alert("❌ خطا در ذخیره");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleExportExcel = () => {
+    if (!data) return;
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, "FormH");
-    XLSX.writeFile(wb, `FormH_${form.residentName}_${form.fatherName}.xlsx`);
+    const detailsWS = XLSX.utils.json_to_sheet([
+      { فیلد: "نام", مقدار: data.Name },
+      { فیلد: "نام پدر", مقدار: data.parentType },
+      { فیلد: "دیپارتمنت", مقدار: data.department },
+      { فیلد: "شف دپارتمان", مقدار: data.shiftDepartment },
+      { فیلد: "آمر برنامه آموزشی", مقدار: data.programDirector },
+      { فیلد: "اوسط نمرات", مقدار: data.averageScore },
+    ]);
+    XLSX.utils.book_append_sheet(wb, detailsWS, "مشخصات");
+
+    const yearsWS = XLSX.utils.json_to_sheet(data.trainingYears.map((y, idx) => ({
+      "#": idx + 1,
+      "سال آموزشی": y.year,
+      "مجموع نمرات": y.totalScore,
+      "نام استاد": y.instructor
+    })));
+    XLSX.utils.book_append_sheet(wb, yearsWS, "سال‌های آموزشی");
+
+    const signWS = XLSX.utils.json_to_sheet([
+      { مسئول: "رئیس دیپارتمنت", نام: data.departmentHead || "" },
+      { مسئول: "آمر برنامه تریننگ", نام: data.programHead || "" },
+      { مسئول: "رئیس شفاخانه", نام: data.hospitalHead || "" }
+    ]);
+    XLSX.utils.book_append_sheet(wb, signWS, "امضاها");
+
+    XLSX.writeFile(wb, `FormH_${data.Name}.xlsx`);
   };
 
-  const printPage = () => {
-    window.print();
+  const handlePrint = () => {
+    if (!printRef.current) return;
+    const printContents = printRef.current.innerHTML;
+    const printWindow = window.open("", "_blank", "width=1000,height=800");
+    if (printWindow) {
+      printWindow.document.write(`
+        <html dir="rtl" lang="fa">
+        <head>
+          <meta charset="UTF-8">
+          <title>فرم H - ${data?.Name}</title>
+          <style>
+            body { font-family: Tahoma, Arial; direction: rtl; margin: 20px; line-height:1.6; color:#000;}
+            table { width:100%; border-collapse: collapse; margin-bottom:20px; }
+            th, td { border:1px solid #333; padding:8px; text-align:center; }
+            th { background:#f5f5f5; font-weight:bold; }
+            .average-score { font-weight:bold; text-align:center; margin-bottom:20px; }
+          </style>
+        </head>
+        <body>
+          ${printContents}
+          <script>
+            window.onload = function() { window.print(); setTimeout(()=>window.close(),100); };
+          </script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
   };
+
+  if (loading) return <div className="p-4 text-center">در حال بارگذاری...</div>;
+  if (!data) return <div className="p-4 text-center text-red-500">فرمی موجود نیست</div>;
 
   return (
-    <div className="p-4 print:p-0">
-      <h3 className="text-lg font-bold mb-4 text-center">
-        فرم H – {form.residentName} {form.fatherName}
-      </h3>
+    <div className="p-4">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Form H - فرم ارزیابی سالانه</h2>
+        <div className="space-x-2">
+          {editing ? (
+            <>
+              <button onClick={handleSave} disabled={saving} className="bg-green-600 text-white px-3 py-1 rounded disabled:bg-gray-400">
+                {saving ? "در حال ذخیره..." : "ذخیره"}
+              </button>
+              <button onClick={() => setEditing(false)} className="bg-red-600 text-white px-3 py-1 rounded">لغو</button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => setEditing(true)} className="bg-blue-600 text-white px-3 py-1 rounded">ویرایش</button>
+              <button onClick={handleExportExcel} className="bg-yellow-500 text-white px-3 py-1 rounded">Excel</button>
+              <button onClick={handlePrint} className="bg-green-600 text-white px-3 py-1 rounded">چاپ</button>
+            </>
+          )}
+          {onClose && <button onClick={onClose} className="bg-gray-500 text-white px-3 py-1 rounded">بستن</button>}
+        </div>
+      </div>
 
-      {/* مشخصات */}
-      <table className="table-auto border-collapse border border-slate-300 text-sm w-full mb-4">
-        <tbody>
-          <tr>
-            <td className="border px-2 py-1 font-semibold">نام</td>
-            <td className="border px-2 py-1">{form.residentName}</td>
-            <td className="border px-2 py-1 font-semibold">نام پدر</td>
-            <td className="border px-2 py-1">{form.fatherName}</td>
-          </tr>
-          <tr>
-            <td className="border px-2 py-1 font-semibold">دیپارتمنت</td>
-            <td className="border px-2 py-1">{form.department}</td>
-            <td className="border px-2 py-1 font-semibold">شف دپارتمان</td>
-            <td className="border px-2 py-1">{form.shiftDepartment}</td>
-          </tr>
-          <tr>
-            <td className="border px-2 py-1 font-semibold">
-              آمر برنامه آموزشی
-            </td>
-            <td className="border px-2 py-1">{form.programDirector}</td>
-            <td className="border px-2 py-1 font-semibold">امضای ریاست</td>
-            <td className="border px-2 py-1"></td>
-          </tr>
-        </tbody>
-      </table>
-
-      {/* جدول چهار سال ترینی */}
-      <table className="table-auto border-collapse border border-slate-300 text-sm w-full">
-        <thead>
-          <tr>
-            <th className="border px-2 py-1">سال ترینی</th>
-            <th className="border px-2 py-1">مجموع نمرات</th>
-            <th className="border px-2 py-1">نام استاد</th>
-            <th className="border px-2 py-1">امضای استاد</th>
-          </tr>
-        </thead>
-        <tbody>
-          {trainingYears.map((y, idx) => (
-            <tr key={idx}>
-              <td className="border px-2 py-1">{y.year}</td>
-              <td className="border px-2 py-1">{y.totalScore}</td>
-              <td className="border px-2 py-1">{y.instructor}</td>
-              <td className="border px-2 py-1"></td>
+      <div ref={printRef} className="overflow-auto border rounded-lg max-h-[60vh] p-4 bg-white">
+        {/* مشخصات فردی */}
+        <table className="min-w-full border border-slate-300 mb-6">
+          <tbody>
+            <tr>
+              <td className="font-semibold px-3 py-2 border">نام</td>
+              <td className="px-3 py-2 border">{editing ? <input value={data.Name} onChange={e => handleFieldChange("Name", e.target.value)} className="w-full border px-2 py-1 rounded"/> : data.Name}</td>
+              <td className="font-semibold px-3 py-2 border">نام پدر</td>
+              <td className="px-3 py-2 border">{editing ? <input value={data.parentType} onChange={e => handleFieldChange("parentType", e.target.value)} className="w-full border px-2 py-1 rounded"/> : data.parentType}</td>
             </tr>
-          ))}
-          <tr>
-            <td className="border px-2 py-1"></td>
-            <td className="border px-2 py-1 font-semibold">اوسط نمرات</td>
-            <td className="border px-2 py-1">{form.averageScore}</td>
-            <td className="border px-2 py-1"></td>
-          </tr>
-        </tbody>
-      </table>
+            <tr>
+              <td className="font-semibold px-3 py-2 border">دیپارتمنت</td>
+              <td className="px-3 py-2 border">{editing ? <input value={data.department} onChange={e => handleFieldChange("department", e.target.value)} className="w-full border px-2 py-1 rounded"/> : data.department}</td>
+              <td className="font-semibold px-3 py-2 border">شف دپارتمان</td>
+              <td className="px-3 py-2 border">{data.shiftDepartment}</td>
+            </tr>
+            <tr>
+              <td className="font-semibold px-3 py-2 border">آمر برنامه آموزشی</td>
+              <td className="px-3 py-2 border" colSpan={3}>{editing ? <input value={data.programDirector} onChange={e => handleFieldChange("programDirector", e.target.value)} className="w-full border px-2 py-1 rounded"/> : data.programDirector}</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <div className="mt-4 flex space-x-2">
-        <button
-          className="bg-green-500 text-white px-3 py-1 rounded"
-          onClick={exportExcel}
-        >
-          چاپ Excel
-        </button>
-        <button
-          className="bg-blue-500 text-white px-3 py-1 rounded"
-          onClick={printPage}
-        >
-          چاپ PDF / پرینت مرورگر
-        </button>
-        <button
-          className="bg-gray-500 text-white px-3 py-1 rounded"
-          onClick={onClose}
-        >
-          بستن
-        </button>
+        {/* جدول سال‌های آموزشی */}
+        <table className="min-w-full border border-slate-300 mb-6">
+          <thead>
+            <tr className="bg-gray-50">
+              <th className="p-2 border">سال آموزشی</th>
+              <th className="p-2 border">مجموع نمرات</th>
+              <th className="p-2 border">نام استاد</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.trainingYears.map((year, idx) => (
+              <tr key={idx}>
+                <td className="p-2 border">{year.year}</td>
+                <td className="p-2 border text-center">{editing ? <input type="number" value={year.totalScore} onChange={e => handleYearChange(idx, "totalScore", Number(e.target.value))} className="w-full border px-1 py-0.5 rounded text-center"/> : year.totalScore}</td>
+                <td className="p-2 border">{editing ? <input value={year.instructor} onChange={e => handleYearChange(idx, "instructor", e.target.value)} className="w-full border px-1 py-0.5 rounded"/> : year.instructor}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="average-score mb-4 text-center font-bold">اوسط نمرات: {data.averageScore}</div>
+
+        {/* امضاها */}
+        <table className="min-w-full border border-slate-300 signature-table">
+          <tbody>
+            <tr>
+              <td className="font-semibold px-3 py-2 border text-center">رئیس دیپارتمنت</td>
+              <td className="font-semibold px-3 py-2 border text-center">آمر برنامه تریننگ</td>
+              <td className="font-semibold px-3 py-2 border text-center">رئیس شفاخانه</td>
+            </tr>
+            <tr>
+              <td className="px-3 py-2 border text-center min-h-[50px]">{data.departmentHead || "____________"}</td>
+              <td className="px-3 py-2 border text-center min-h-[50px]">{data.programHead || "____________"}</td>
+              <td className="px-3 py-2 border text-center min-h-[50px]">{data.hospitalHead || "____________"}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );

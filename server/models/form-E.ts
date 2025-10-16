@@ -2,8 +2,8 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IEvaluationFormE extends Document {
   trainer: Types.ObjectId;
-  residentName: string;
-  fatherName: string;
+  Name: string;
+  parentType: string;
   trainingYear: string;
   incidentTitle: string;
   date: string;
@@ -14,8 +14,8 @@ export interface IEvaluationFormE extends Document {
 const EvaluationFormESchema = new Schema<IEvaluationFormE>(
   {
     trainer: { type: Schema.Types.ObjectId, ref: "Trainer", required: true },
-    residentName: { type: String, required: true },
-    fatherName: { type: String, required: true },
+    Name: { type: String, required: true },
+    parentType: { type: String, required: true },
     trainingYear: { type: String, required: true },
     incidentTitle: { type: String, required: true },
     date: { type: String, required: true },

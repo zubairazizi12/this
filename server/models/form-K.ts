@@ -18,9 +18,9 @@ export interface IMonographEvaluation extends Document {
   trainer: Types.ObjectId; // رفرنس به جدول Trainer
   name: string;
   lastName: string;
-  fatherName: string;
+  parentType: string;
   idNumber: string;
-  field: string;
+  department: string;
   trainingYear: string;
   startYear: string;
   date: string;
@@ -43,9 +43,9 @@ const MonographEvaluationSchema: Schema = new Schema({
   trainer: { type: Schema.Types.ObjectId, ref: "Trainer", required: true },
   name: { type: String, required: true },
   lastName: { type: String, required: true },
-  fatherName: { type: String, required: true },
+  parentType: { type: String, required: true },
   idNumber: { type: String, default: "" },
-  field: { type: String, default: "" },
+  department: { type: String, default: "" },
   trainingYear: { type: String, default: "" },
   startYear: { type: String, default: "" },
   date: { type: String, default: "" },

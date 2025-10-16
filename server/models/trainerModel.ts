@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface ITrainer extends Document {
-  id: string;                // ایدی کاربر (اختیاری ولی اگر لازم است نگهداری شود)
+  id: string;
   name: string;
   lastName: string;
   parentType: string;
@@ -22,11 +22,12 @@ export interface ITrainer extends Document {
   postNumberAndCode: string;
   appointmentType: string;
   status: string;
+  photo?: string; // مسیر عکس ذخیره شده
 }
 
 const trainerSchema = new Schema<ITrainer>(
   {
-    id: { type: String }, // اگر نیاز دارید که ایدی اختصاصی ذخیره شود
+    id: { type: String },
     name: { type: String, required: true, trim: true },
     lastName: { type: String, required: true, trim: true },
     parentType: { type: String, trim: true },
@@ -55,8 +56,9 @@ const trainerSchema = new Schema<ITrainer>(
       enum: ["برحال", "خدماتی", ""],
       default: "",
     },
+    photo: { type: String, trim: true }, // مسیر عکس ذخیره می‌شود
   },
-  { timestamps: true } // ایجاد createdAt و updatedAt
+  { timestamps: true }
 );
 
 export default mongoose.models.Trainer ||

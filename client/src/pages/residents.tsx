@@ -5,7 +5,6 @@ import TrainerRegistrationForm from "@/components/forms/TrainerRegistrationForm"
 import TrainerDetails from "@/components/residents/resident-details";
 import TrainerDetailsModal from "@/components/residents/ResidentDetailsModal";
 import TrainerActionModal from "@/components/residents/TrainerActionModal";
-import Header from "@/components/layout/header";
 
 import {
   Select,
@@ -44,6 +43,7 @@ type Trainer = {
   appointmentType: string;
   status: string;
   profileImageUrl?: string;
+  photo?: string;
 };
 
 type FormType = { type: string; name: string };
@@ -70,19 +70,17 @@ export default function TrainersPage() {
   const [showForm, setShowForm] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  const [selectedActionTrainer, setSelectedActionTrainer] = useState<Trainer | null>(null);
+  const [selectedActionTrainer, setSelectedActionTrainer] =
+    useState<Trainer | null>(null);
   const { data: trainers = [], isLoading } = useQuery<Trainer[]>({
     queryKey: ["/api/trainers"],
     queryFn: async () => {
       const res = await fetch("/api/trainers");
-      if (!res.ok) {
-        throw new Error('Failed to fetch trainers');
-      }
       return res.json();
     },
   });
 
-  const filteredTrainers = Array.isArray(trainers) ? trainers.filter((trainer) => {
+  const filteredTrainers = trainers.filter((trainer) => {
     const fullName = `${trainer.name} ${trainer.lastName}`.toLowerCase();
     const matchesSearch =
       fullName.includes(searchTerm.toLowerCase()) ||
@@ -90,9 +88,9 @@ export default function TrainersPage() {
     const matchesDepartment =
       departmentFilter === "all" || trainer.department === departmentFilter;
     return matchesSearch && matchesDepartment;
-  }) : [];
+  });
 
-  const departments = Array.isArray(trainers) ? Array.from(new Set(trainers.map((t) => t.department))) : [];
+  const departments = Array.from(new Set(trainers.map((t) => t.department)));
 
   const handleSelectForm = (trainer: Trainer, ft: FormType) => {
     setSelectedForm({
@@ -109,9 +107,8 @@ export default function TrainersPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <Header />
         <Sidebar />
-        <div className="mr-0 md:mr-64 p-4 md:p-6">
+        <div className="mr-64 p-6">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-slate-200 rounded w-64"></div>
             <div className="h-20 bg-slate-200 rounded"></div>
@@ -128,13 +125,12 @@ export default function TrainersPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Header />
       <Sidebar />
-      <div className="mr-0 md:mr-64 pt-16 md:pt-20 p-4 md:p-6">
+      <div className="mr-64 p-6 py-20">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b border-slate-200 -m-4 md:-m-6 mb-4 md:mb-6">
-          <div className="px-4 md:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <h1 className="text-xl md:text-2xl font-semibold text-slate-900">
+        <header className="bg-white shadow-sm border-b border-slate-200 -m-6 mb-6">
+          <div className="px-6 py-4 flex items-center justify-between">
+            <h1 className="text-2xl font-semibold text-slate-900">
               مدیریت ترینرها
             </h1>
             {user?.role === "admin" && (
@@ -185,7 +181,7 @@ export default function TrainersPage() {
               <SelectValue placeholder="همه بخش‌ها" />
             </SelectTrigger>
             <SelectContent>
-              ّ<SelectItem value="all">همه بخش‌ها</SelectItem>
+              <SelectItem value="all">همه بخش‌ها</SelectItem>
               {departments.map((dept) => (
                 <SelectItem key={dept} value={dept}>
                   {dept}
@@ -196,28 +192,28 @@ export default function TrainersPage() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto rounded-lg shadow-md border border-slate-200">
-          <table className="min-w-full border-collapse text-sm">
-            <thead className="bg-slate-100 text-slate-700 font-semibold">
-              <tr>
-                <th className="p-2 text-center">تصویر</th>
-                <th className="p-2 text-center">نام</th>
-                <th className="p-2 text-center">تخلص</th>
-                <th className="p-2 text-center">آیدی</th>
-                <th className="p-2 text-center">دپارتمان</th>
-                <th className="p-2 text-center">اضافه نمودن فرم</th>
-                <th className="p-2 text-center">جزئیات</th>
-                <th className="p-2 text-center">اکشن</th>
-              </tr>
-            </thead>
-            <tbody>
+        <table className="min-w-full border border-slate-200 text-sm">
+          <thead className="bg-slate-100 text-slate-700 font-semibold">
+            <tr>
+              <th className="p-2 text-center">تصویر</th>
+              <th className="p-2 text-center">نام</th>
+              <th className="p-2 text-center">تخلص</th>
+              <th className="p-2 text-center">آیدی</th>
+              <th className="p-2 text-center">دپارتمان</th>
+              <th className="p-2 text-center">اضافه نمودن فرم</th>
+              <th className="p-2 text-center">جزئیات</th>
+              <th className="p-2 text-center">اکشن</th>
+            </tr>
+          </thead>
+          <tbody>
             {filteredTrainers.map((trainer) => (
               <tr key={trainer._id} className="border-b hover:bg-slate-50">
                 <td className="p-2 text-center">
                   <img
                     src={
-                      trainer.profileImageUrl ??
-                      "/assets/img/default-avatar.png"
+                      trainer.photo
+                        ? `http://localhost:5000${trainer.photo}`
+                        : "/assets/img/default-avatar.png"
                     }
                     className="w-12 h-12 rounded-full mx-auto"
                   />
@@ -229,56 +225,52 @@ export default function TrainersPage() {
 
                 {/* اضافه کردن فرم */}
                 <td className="p-2 text-center relative">
-                  {user?.role === "admin" && (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="flex items-center gap-1"
-                        onClick={() =>
-                          setShowDropdownId(
-                            showDropdownId === trainer._id ? null : trainer._id
-                          )
-                        }
-                      >
-                        <Plus className="h-3 w-3" />
-                        اضافه نمودن فرم
-                      </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="flex items-center gap-1"
+                    onClick={() =>
+                      setShowDropdownId(
+                        showDropdownId === trainer._id ? null : trainer._id
+                      )
+                    }
+                  >
+                    <Plus className="h-3 w-3" />
+                    اضافه نمودن فرم
+                  </Button>
 
-                      {showDropdownId === trainer._id && (
-                        <div className="absolute right-0 top-full mt-2 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-50 w-40">
-                          {/* هدر dropdown */}
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-semibold text-slate-700">
-                              انتخاب فرم
-                            </span>
-                            <button
-                              onClick={() => setShowDropdownId(null)}
-                              className="text-slate-500 hover:text-red-500"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </div>
+                  {showDropdownId === trainer._id && (
+                    <div className="absolute right-0 top-full mt-2 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-50 w-40">
+                      {/* هدر dropdown */}
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-semibold text-slate-700">
+                          انتخاب فرم
+                        </span>
+                        <button
+                          onClick={() => setShowDropdownId(null)}
+                          className="text-slate-500 hover:text-red-500"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
 
-                          {/* لیست فرم‌ها */}
-                          <div className="flex flex-col gap-2 max-h-80 overflow-y-auto">
-                            {FORM_TYPES.map((ft) => (
-                              <button
-                                key={ft.type}
-                                onClick={() => {
-                                  handleSelectForm(trainer, ft); // ست کردن selectedForm
-                                  setShowDropdownId(null); // بستن dropdown بعد از انتخاب
-                                }}
-                                className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 hover:bg-hospital-green-600 hover:text-white font-bold transition"
-                                title={ft.name}
-                              >
-                                {ft.type}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </>
+                      {/* لیست فرم‌ها */}
+                      <div className="flex flex-col gap-2 max-h-80 overflow-y-auto">
+                        {FORM_TYPES.map((ft) => (
+                          <button
+                            key={ft.type}
+                            onClick={() => {
+                              handleSelectForm(trainer, ft); // ست کردن selectedForm
+                              setShowDropdownId(null); // بستن dropdown بعد از انتخاب
+                            }}
+                            className="flex items-center justify-center w-10 h-10 rounded-full bg-slate-100 hover:bg-hospital-green-600 hover:text-white font-bold transition"
+                            title={ft.name}
+                          >
+                            {ft.type}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </td>
 
@@ -313,9 +305,8 @@ export default function TrainersPage() {
                 </td>
               </tr>
             ))}
-            </tbody>
-          </table>
-        </div>
+          </tbody>
+        </table>
 
         {/* Modals */}
 
@@ -323,6 +314,7 @@ export default function TrainersPage() {
           <FormModal
             form={selectedForm}
             onClose={() => setSelectedForm(null)}
+            trainerId={selectedForm.trainerId} // 👈 اضافه شد
           />
         )}
         {selectedTrainer && (

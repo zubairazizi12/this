@@ -19,9 +19,10 @@ interface Section {
 }
 
 export interface IChecklist extends Document {
-  studentName: string;
-  fatherName: string;
-  year: string;
+  trainerId: mongoose.Types.ObjectId; // ✅ اضافه شد
+  name: string;
+  parentType: string;
+  trainingYear: string;
   sections: Section[];
 }
 
@@ -39,14 +40,20 @@ const ActivitySchema = new Schema<Activity>({
 });
 
 const SectionSchema = new Schema<Section>({
+  
   name: { type: String, required: true },
   activities: { type: [ActivitySchema], required: true },
 });
 
 const ChecklistSchema = new Schema<IChecklist>({
-  studentName: { type: String, required: true },
-  fatherName: { type: String, required: true },
-  year: { type: String, required: true },
+  trainerId: {
+    type: Schema.Types.ObjectId,
+    ref: "Trainer", // ✅ رفرنس به کالکشن ترینرها
+    required: true,
+  },
+  name: { type: String, required: true },
+  parentType: { type: String, required: true },
+  trainingYear: { type: String, required: true },
   sections: { type: [SectionSchema], required: true },
 });
 

@@ -1,14 +1,29 @@
-import { Router } from "express";
-import { TeacherActivityController } from "../controllers/form-J";
+// routes/teacherActivityRoutes.ts
+import express from "express";
+import {
+  createTeacherActivity,
+  getSingleTeacherActivityByTrainer,
+  getTeacherActivityById,
+  updateTeacherActivity,
+  deleteTeacherActivity,
+} from "../controllers/form-J";
 
-export const teacherActivityRoutes = Router();
+const router = express.Router();
 
-// ایجاد فرم
-teacherActivityRoutes.post("/", TeacherActivityController.create);
+// ✅ ایجاد فرم جدید
+router.post("/", createTeacherActivity);
 
-// گرفتن تمام فرم‌ها برای یک ترینر
-teacherActivityRoutes.get("/trainer/:trainerId", TeacherActivityController.getAll);
 
-// (اختیاری) بروزرسانی فرم
-teacherActivityRoutes.put("/:id", TeacherActivityController.update);
+// مسیر جدید برای گرفتن یک فرم از روی trainerId
+router.get("/:trainerId", getSingleTeacherActivityByTrainer);
 
+// ✅ دریافت فرم با ID خاص
+router.get("/:id", getTeacherActivityById);
+
+// ✅ بروزرسانی فرم با ID
+router.put("/:id", updateTeacherActivity);
+
+// ✅ حذف فرم با ID
+router.delete("/:id", deleteTeacherActivity);
+
+export { router as teacherActivityRoutes };

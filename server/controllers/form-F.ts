@@ -1,65 +1,85 @@
+
 import { Request, Response } from "express";
 import Checklist from "../models/form-F";
 
-// ایجاد Checklist
+// 🔹 Create new Form-F (Checklist)
 export const createChecklist = async (req: Request, res: Response) => {
   try {
-    const { studentName, fatherName, year, sections } = req.body;
+    const { trainerId, name, parentType, trainingYear, sections } = req.body;
 
-    if (!studentName || !fatherName || !year || !sections) {
+    if (!trainerId) 
+      return res.status(400).json({ message: "TrainerId الزامی است" });
+    if (!name || !parentType || !trainingYear || !sections) {
       return res.status(400).json({ message: "اطلاعات ناقص است" });
     }
 
     const checklist = new Checklist({
-      studentName,
-      fatherName,
-      year,
+      trainerId,
+      name,
+      parentType,
+      trainingYear,
       sections,
     });
 
-    const saved = await checklist.save();
-    res.status(201).json(saved);
+    const savedChecklist = await checklist.save();
+    res.status(201).json(savedChecklist);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "خطا در ذخیره اطلاعات" });
+    res.status(500).json({ message: "خطا در ایجاد فرم" });
   }
 };
 
-// دریافت Checklist بر اساس نام ترینی
-// دریافت Checklist بر اساس نام ترینی (Case-Insensitive)
-export const getChecklistByStudentName = async (req: Request, res: Response) => {
+// 🔹 Get all Form-Fs for a specific trainer
+export const getChecklists = async (req: Request, res: Response) => {
   try {
-    const { studentName } = req.params;
+    const { trainerId } = req.params;
 
-    const checklist = await Checklist.findOne({
-      studentName: { $regex: new RegExp("^" + studentName + "$", "i") }
-    });
+    if (!trainerId) return res.status(400).json({ message: "TrainerId الزامی است" });
 
-    if (!checklist) return res.status(404).json({ message: "Checklist not found" });
-
-    // Transform sections data to scores format for frontend
-    const scores: Record<string, Record<number, number>> = {};
-    
-    checklist.sections.forEach(section => {
-      section.activities.forEach(activity => {
-        scores[activity.id] = {};
-        activity.months.forEach(monthData => {
-          scores[activity.id][monthData.month] = monthData.value;
-        });
-      });
-    });
-
-    const response = {
-      studentName: checklist.studentName,
-      fatherName: checklist.fatherName,
-      year: checklist.year,
-      scores: scores
-    };
-
-    res.json(response);
+    const checklists = await Checklist.find({ trainerId }).sort({ createdAt: -1 });
+    res.json(checklists);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "خطا در دریافت فرم‌ها" });
+  }
+};
+
+// 🔹 Get a single Form-F by ID
+export const getChecklistById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const checklist = await Checklist.findById(id);
+    if (!checklist) return res.status(404).json({ message: "فرم یافت نشد" });
+    res.json(checklist);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "خطا در دریافت فرم" });
+  }
+};
+
+// 🔹 Update Form-F by ID
+export const updateChecklist = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updatedChecklist = await Checklist.findByIdAndUpdate(id, req.body, { new: true });
+    if (!updatedChecklist) return res.status(404).json({ message: "فرم یافت نشد" });
+    res.json(updatedChecklist);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "خطا در بروزرسانی فرم" });
+  }
+};
+
+// 🔹 Delete Form-F by ID
+export const deleteChecklist = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const deletedChecklist = await Checklist.findByIdAndDelete(id);
+    if (!deletedChecklist) return res.status(404).json({ message: "فرم یافت نشد" });
+    res.json({ message: "فرم با موفقیت حذف شد" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "خطا در حذف فرم" });
   }
 };
 

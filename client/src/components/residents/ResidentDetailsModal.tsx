@@ -1,19 +1,17 @@
-// TrainerDetailsModal.tsx
+// components/residents/TrainerDetailsModal.tsx
 import * as React from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import TrainerDetails from "./resident-details"; // اگر کامپوننت مخصوص ترینر دارید اینجا مسیرش را اصلاح کنید
+import TrainerDetails from "./resident-details";
 
 interface TrainerDetailsModalProps {
-  trainerId: string; // آیدی ترینر
-  isOpen: boolean; // باز یا بسته بودن
-  onClose: () => void; // تابع بستن
+  trainerId: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export default function TrainerDetailsModal({
@@ -25,24 +23,22 @@ export default function TrainerDetailsModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent
         className="
-           w-[80%] h-screen max-w-none max-h-none 
-           mt-2 mx-auto    /* mt-2 فاصله کم از بالا / mx-auto وسط چین */
-            rounded-xl bg-white 
-           overflow-y-auto
-           "
-        >
-        <DialogHeader>
-          <DialogTitle>جزئیات ترینر</DialogTitle>
+          w-[90%] max-w-6xl 
+          max-h-[90vh] 
+          mt-4 mx-auto
+          rounded-xl bg-white 
+          overflow-y-auto
+          p-0
+        "
+      >
+        <DialogHeader className="p-6 border-b">
+          <DialogTitle className="text-xl font-bold">جزئیات ترینر</DialogTitle>
         </DialogHeader>
 
-        {/* اینجا همان جزئیات ترینر را لود می‌کنید */}
-        <TrainerDetails trainerId={trainerId} onClose={onClose} />
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            بستن
-          </Button>
-        </DialogFooter>
+        {/* محتوای اصلی */}
+        <div className="p-6">
+          <TrainerDetails trainerId={trainerId} onClose={onClose} />
+        </div>
       </DialogContent>
     </Dialog>
   );

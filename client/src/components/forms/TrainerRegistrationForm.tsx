@@ -1,26 +1,23 @@
 import React from "react";
-import { useForm, Controller } from "react-hook-form";
-import { X } from "lucide-react"; // آیکن ضربدر برای بستن
-import { useTrainer } from "@/context/TrainerContext"; // hook context
-// A clean, readable Trainer Registration form in TSX using TailwindCSS + react-hook-form
-// Usage: import TrainerRegistrationForm from './TrainerRegistrationForm';
-// Dependencies: react, react-dom, react-hook-form, tailwindcss (optional)
+import { useForm } from "react-hook-form";
+import { X } from "lucide-react";
+import { useTrainer } from "@/context/TrainerContext";
 
 type FormValues = {
   id: string;
   name: string;
   lastName: string;
-  parentType: "ولد" | "بنت" | string; // allow free text for flexibility
+  parentType: "ولد" | "بنت" | string;
   parentName: string;
   gender: "مرد" | "زن" | string;
   province: string;
   department: string;
   specialty: string;
   hospital: string;
-  joiningDate: string; // YYYY-MM-DD
+  joiningDate: string;
   trainingYear: string;
   supervisorName: string;
-  birthDate: string; // YYYY-MM-DD
+  birthDate: string;
   idNumber: string;
   phoneNumber: string;
   whatsappNumber: string;
@@ -28,6 +25,7 @@ type FormValues = {
   postNumberAndCode: string;
   appointmentType: "رقابت آزاد" | "داوطلب" | "حکمی" | "بست خالی" | string;
   status: "برحال" | "خدماتی" | string;
+  photo?: FileList;
 };
 
 type TrainerRegistrationFormProps = {
@@ -41,7 +39,6 @@ export default function TrainerRegistrationForm({
     register,
     handleSubmit,
     reset,
-    control,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
@@ -66,16 +63,26 @@ export default function TrainerRegistrationForm({
       postNumberAndCode: "",
       appointmentType: "",
       status: "",
+      photo: undefined,
     },
   });
-  const { setTrainerId } = useTrainer(); // دسترسی به setter context
+
+  const { setTrainerId } = useTrainer();
 
   const onSubmit = async (data: FormValues) => {
     try {
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        if (key === "photo" && value && value.length > 0) {
+          formData.append("photo", value[0]);
+        } else {
+          formData.append(key, value as string);
+        }
+      });
+
       const response = await fetch("/api/trainers", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -85,11 +92,9 @@ export default function TrainerRegistrationForm({
       }
 
       const savedTrainer = await response.json();
-      console.log("Saved trainer:", savedTrainer); // 🔴 اینو اضافه کن
+      console.log("Saved trainer:", savedTrainer);
 
-      // 👇 مطمئن شو فیلد درست را می‌گیری
       const trainerId = savedTrainer?._id ?? savedTrainer?.id;
-
       if (!trainerId) {
         alert("API آیدی برنگرداند!");
         return;
@@ -108,7 +113,6 @@ export default function TrainerRegistrationForm({
   return (
     <div className="h-screen overflow-y-auto bg-gray-50">
       <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-md relative">
-        {/* دکمه بستن */}
         <button
           type="button"
           onClick={onClose}
@@ -123,25 +127,25 @@ export default function TrainerRegistrationForm({
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* متن و انتخاب */}
             <label className="flex flex-col">
               <span className="text-sm">ایدی</span>
               <input
                 {...register("id", { required: "ایدی لازم است" })}
                 className="mt-1 p-2 border rounded-md focus:outline-none focus:ring-2"
-                placeholder="ایدی را وارد کنید."
               />
-              {errors.name && (
+              {errors.id && (
                 <span className="text-red-600 text-sm">
-                  {errors.name.message}
+                  {errors.id.message}
                 </span>
               )}
             </label>
+
             <label className="flex flex-col">
               <span className="text-sm">اسم</span>
               <input
                 {...register("name", { required: "اسم لازم است" })}
                 className="mt-1 p-2 border rounded-md focus:outline-none focus:ring-2"
-                placeholder="اسم را وارد کنید."
               />
               {errors.name && (
                 <span className="text-red-600 text-sm">
@@ -153,9 +157,8 @@ export default function TrainerRegistrationForm({
             <label className="flex flex-col">
               <span className="text-sm">تخلص</span>
               <input
-                {...register("lastName", { required: "اسم لازم است" })}
+                {...register("lastName", { required: "تخلص لازم است" })}
                 className="mt-1 p-2 border rounded-md focus:outline-none focus:ring-2"
-                placeholder="تخلص را وارد کنید."
               />
               {errors.lastName && (
                 <span className="text-red-600 text-sm">
@@ -169,7 +172,6 @@ export default function TrainerRegistrationForm({
               <input
                 {...register("parentType")}
                 className="mt-1 p-2 border rounded-md"
-                placeholder="نام پدر را وارد کنید."
               />
             </label>
 
@@ -178,7 +180,6 @@ export default function TrainerRegistrationForm({
               <input
                 {...register("parentName")}
                 className="mt-1 p-2 border rounded-md"
-                placeholder="نام پدر بزرگ را وارد کنید."
               />
             </label>
 
@@ -188,7 +189,7 @@ export default function TrainerRegistrationForm({
                 {...register("gender")}
                 className="mt-1 p-2 border rounded-md"
               >
-                <option value="">جنسیت را انتخاب کنید.</option>
+                <option value="">جنسیت را انتخاب کنید</option>
                 <option value="مرد">مرد</option>
                 <option value="زن">زن</option>
               </select>
@@ -200,7 +201,7 @@ export default function TrainerRegistrationForm({
                 {...register("province", { required: "انتخاب ولایت لازم است" })}
                 className="mt-1 p-2 border rounded-md"
               >
-                <option value="">ولایت را انتخاب کنید.</option>
+                <option value="">ولایت را انتخاب کنید</option>
                 <option value="کابل">کابل</option>
                 <option value="پروان">پروان</option>
                 <option value="کاپیسا">کاپیسا</option>
@@ -249,7 +250,7 @@ export default function TrainerRegistrationForm({
                 {...register("department", { required: "دیپارتمنت لازم است" })}
                 className="mt-1 p-2 border rounded-md"
               >
-                <option value=""> دیپارتمنت را انتخاب کنید.</option>
+                <option value="">دیپارتمنت را انتخاب کنید</option>
                 <option value="شبکیه">شبکیه</option>
                 <option value="اطفال">اطفال</option>
                 <option value="چشم پولیس">چشم پولیس</option>
@@ -260,11 +261,6 @@ export default function TrainerRegistrationForm({
                 <option value="پبپکم">پبپکم</option>
                 <option value="عمومی">عمومی</option>
               </select>
-              {errors.department && (
-                <span className="text-red-600 text-sm">
-                  {errors.department.message}
-                </span>
-              )}
             </label>
 
             <label className="flex flex-col">
@@ -273,15 +269,9 @@ export default function TrainerRegistrationForm({
                 {...register("specialty", { required: "رشته تخصصی لازم است" })}
                 className="mt-1 p-2 border rounded-md"
               >
-                <option value="">رشته تخصص را انتخاب کنید.</option>
+                <option value="">رشته تخصص را انتخاب کنید</option>
                 <option value="چشم">چشم</option>
-                {/* در آینده می‌توانید گزینه‌های دیگر اضافه کنید */}
               </select>
-              {errors.specialty && (
-                <span className="text-red-600 text-sm">
-                  {errors.specialty.message}
-                </span>
-              )}
             </label>
 
             <label className="flex flex-col">
@@ -289,7 +279,6 @@ export default function TrainerRegistrationForm({
               <input
                 {...register("hospital")}
                 className="mt-1 p-2 border rounded-md"
-                placeholder="نام شفاخانه را وارد کنید."
               />
             </label>
 
@@ -299,7 +288,6 @@ export default function TrainerRegistrationForm({
                 type="date"
                 {...register("joiningDate")}
                 className="mt-1 p-2 border rounded-md"
-                placeholder="تاریخ را انتخاب کنید."
               />
             </label>
 
@@ -308,7 +296,6 @@ export default function TrainerRegistrationForm({
               <input
                 {...register("trainingYear")}
                 className="mt-1 p-2 border rounded-md"
-                placeholder="سال تریننگ را را وارد کنید."
               />
             </label>
 
@@ -317,7 +304,6 @@ export default function TrainerRegistrationForm({
               <input
                 {...register("supervisorName")}
                 className="mt-1 p-2 border rounded-md"
-                placeholder="اسم سوپروایزر را وارد کنید."
               />
             </label>
 
@@ -335,7 +321,6 @@ export default function TrainerRegistrationForm({
               <input
                 {...register("idNumber")}
                 className="mt-1 p-2 border rounded-md"
-                placeholder="نمبر تذکره را وارد کنید."
               />
             </label>
 
@@ -344,7 +329,6 @@ export default function TrainerRegistrationForm({
               <input
                 {...register("phoneNumber")}
                 className="mt-1 p-2 border rounded-md"
-                placeholder="شماره تماس را وارد کنید."
               />
             </label>
 
@@ -353,17 +337,15 @@ export default function TrainerRegistrationForm({
               <input
                 {...register("whatsappNumber")}
                 className="mt-1 p-2 border rounded-md"
-                placeholder="شماره واتسپ را وارد کنید."
               />
             </label>
 
-            <label className="flex flex-col ">
+            <label className="flex flex-col">
               <span className="text-sm">ایمل آدرس</span>
               <input
                 type="email"
                 {...register("email")}
                 className="mt-1 p-2 border rounded-md"
-                placeholder="ایمل آدرس را وارد کنید."
               />
             </label>
 
@@ -372,7 +354,6 @@ export default function TrainerRegistrationForm({
               <input
                 {...register("postNumberAndCode")}
                 className="mt-1 p-2 border rounded-md"
-                placeholder="شماره و کود بست را وارد کنید."
               />
             </label>
 
@@ -382,7 +363,7 @@ export default function TrainerRegistrationForm({
                 {...register("appointmentType")}
                 className="mt-1 p-2 border rounded-md"
               >
-                <option value="">نوع تقرر را انتخاب کنید.</option>
+                <option value="">نوع تقرر را انتخاب کنید</option>
                 <option value="رقابت آزاد">رقابت آزاد</option>
                 <option value="داوطلب">داوطلب</option>
                 <option value="حکمی">حکمی</option>
@@ -401,6 +382,17 @@ export default function TrainerRegistrationForm({
                 <option value="خدماتی">خدماتی</option>
               </select>
             </label>
+
+            {/* فیلد آپلود عکس */}
+            <label className="flex flex-col">
+              <span className="text-sm">عکس ترینر</span>
+              <input
+                type="file"
+                {...register("photo")}
+                accept="image/*"
+                className="mt-1 p-2 border rounded-md"
+              />
+            </label>
           </div>
 
           <div className="flex items-center gap-3 justify-end">
@@ -411,7 +403,6 @@ export default function TrainerRegistrationForm({
             >
               لغو
             </button>
-
             <button
               type="submit"
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

@@ -1,13 +1,25 @@
-import React, { useState } from "react";
-import { useTrainer } from "@/context/TrainerContext"; // ✅ اضافه شد
-export default function EvaluationFormHStyled() {
-  // مشخصات فردی
-  const [residentName, setResidentName] = useState("");
-  const [fatherName, setFatherName] = useState("");
+import React, { useState, useEffect } from "react";
+interface EvaluationFormHProps {
+  trainerIdProp?: string;
+}
+
+type TrainingYear = {
+  year: string;
+  totalScore: string;
+  instructor: string;
+};
+
+export default function EvaluationFormH({
+  trainerIdProp,
+}: EvaluationFormHProps) {
+  const [trainerId, setTrainerId] = useState<string | null>(null);
+  // 🔹 معلومات شخصی
+  const [Name, setName] = useState("");
+  const [parentType, setparentType] = useState("");
   const [department, setDepartment] = useState("");
 
-  // آرایه سال‌ها
-  const [years, setYears] = useState([
+  // 🔹 جدول سال‌های ترینینگ
+  const [years, setYears] = useState<TrainingYear[]>([
     { year: "سال اول", totalScore: "", instructor: "" },
     { year: "سال دوم", totalScore: "", instructor: "" },
     { year: "سال سوم", totalScore: "", instructor: "" },
@@ -17,41 +29,136 @@ export default function EvaluationFormHStyled() {
   const [averageScore, setAverageScore] = useState("");
   const [shiftDepartment, setShiftDepartment] = useState("");
   const [programDirector, setProgramDirector] = useState("");
-  // ✅ گرفتن trainerId از Context
-  const { trainerId } = useTrainer();
+  //////////////////////////////////////////
+    useEffect(() => {
+        if (!trainerIdProp) {
+          alert("هیچ ترینر فعالی یافت نشد!");
+          return;
+        }
+    
+        setTrainerId(trainerIdProp);
+    
+        // 👇 دریافت داده از دیتابیس
+        const fetchTrainerInfo = async () => {
+          try {
+            const res = await fetch(
+              `http://localhost:5000/api/trainers/${trainerIdProp}`
+            );
+            const result = await res.json();
+    
+            if (!res.ok) throw new Error(result.message || "خطا در دریافت ترینر");
+    
+            // فرض می‌کنیم دیتابیس این فیلدها را دارد:
+            // name, fatherName, trainingYear
+            setName(result.name || "");
+            setparentType(result.parentType || "");
+            setDepartment(result.department||"");
+          } catch (err) {
+            console.error("خطا در دریافت ترینر:", err);
+            alert("خطا در دریافت اطلاعات ترینر ❌");
+          }
+        };
+    
+        fetchTrainerInfo();
+      }, [trainerIdProp]);
+  /////////////////////////////////////////
 
-  const handleYearChange = (index: number, field: string, value: string) => {
+  const inputClass = "border px-2 py-2 w-full text-center";
+
+  // 📊 تغییر نمره یا استاد در جدول
+  const handleYearChange = (
+    index: number,
+    field: keyof TrainingYear,
+    value: string
+  ) => {
     const updated = [...years];
-    (updated as any)[index][field] = value;
+    updated[index][field] = value;
     setYears(updated);
+
+    // محاسبه اوسط نمرات
+    const validScores = updated
+      .map((y) => parseFloat(y.totalScore))
+      .filter((s) => !isNaN(s));
+    if (validScores.length > 0) {
+      const avg =
+        validScores.reduce((sum, s) => sum + s, 0) / validScores.length;
+      setAverageScore(avg.toFixed(2));
+    } else {
+      setAverageScore("");
+    }
   };
 
+  // 💾 ذخیره فرم با ولیدیشن کامل
   const handleSubmit = async () => {
     if (!trainerId) {
-      alert("ابتدا باید یک ترینر ثبت شود!");
+      alert("❌ Trainer ID موجود نیست، فرم ذخیره نمی‌شود!");
       return;
     }
+
+    // ✅ بررسی فیلدهای اصلی
+    if (!Name.trim() || !parentType.trim() || !department.trim()) {
+      alert("⚠️ لطفاً تمام فیلدهای معلومات شخصی را پُر کنید.");
+      return;
+    }
+
+    // ✅ بررسی جدول نمرات
+    for (let i = 0; i < years.length; i++) {
+      const y = years[i];
+      if (!y.totalScore.trim() || !y.instructor.trim()) {
+        alert(
+          `⚠️ لطفاً تمام فیلدهای ردیف ${y.year} را پُر کنید (نمره و نام استاد).`
+        );
+        return;
+      }
+      if (isNaN(parseFloat(y.totalScore))) {
+        alert(`⚠️ نمره ${y.year} باید عددی باشد.`);
+        return;
+      }
+    }
+
+    // ✅ بررسی فیلدهای نهایی
+    if (
+      !averageScore.trim() ||
+      !shiftDepartment.trim() ||
+      !programDirector.trim()
+    ) {
+      alert(
+        "⚠️ لطفاً اوسط نمرات، شف دپارتمان و آمر برنامه آموزشی را پُر کنید."
+      );
+      return;
+    }
+
+    // ✅ آماده‌سازی داده برای ارسال
+    const payload = {
+      trainer: trainerId,
+      Name: Name.trim(),
+      parentType: parentType.trim(),
+      department: department.trim(),
+      trainingYears: years.map((y) => ({
+        ...y,
+        totalScore: y.totalScore.trim(),
+        instructor: y.instructor.trim(),
+      })),
+      averageScore: averageScore.trim(),
+      shiftDepartment: shiftDepartment.trim(),
+      programDirector: programDirector.trim(),
+    };
+
+    console.log("📤 ارسال فرم:", payload);
+
     try {
       const res = await fetch("http://localhost:5000/api/evaluationFormH", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          trainer: trainerId, // ✅ از context گرفته شد
-          residentName,
-          fatherName,
-          department,
-          trainingYears: years,
-          averageScore,
-          shiftDepartment,
-          programDirector,
-        }),
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) throw new Error("خطا در ذخیره فرم");
-      alert("فرم با موفقیت ذخیره شد!");
 
-      // ریست کردن تمام فیلدها بعد از ذخیره
-      setResidentName("");
-      setFatherName("");
+      if (!res.ok) throw new Error("خطا در ذخیره فرم");
+      alert("✅ فرم با موفقیت ذخیره شد!");
+
+      // 🧹 پاک‌سازی فرم بعد از ذخیره
+      setName("");
+      setparentType("");
       setDepartment("");
       setYears([
         { year: "سال اول", totalScore: "", instructor: "" },
@@ -64,60 +171,51 @@ export default function EvaluationFormHStyled() {
       setProgramDirector("");
     } catch (err) {
       console.error(err);
-      alert("خطا در ذخیره فرم");
+      alert("❌ خطا در ذخیره فرم");
     }
   };
 
+  // 🧱 UI
   return (
     <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-2xl p-6 mt-6">
-      {/* عنوان و هدر */}
-      <div className="text-center mb-2">
-        <div className="mt-1 font-semibold">وزارت صحت عامه</div>
-        <div className="font-semibold">معینیت اداری</div>
-        <div className="font-semibold">ریاست اکمال تخصص</div>
-      </div>
-      <hr className="border-t-2 border-gray-300 my-3" />
-      <div className="text-center font-semibold mb-4">
-        فرم مخصوص درج نمرات سال‌های دوران ترینینگ - شفاخانه ملی و تخصص چشم نور
-      </div>
+      <h2 className="text-xl font-bold text-center mb-4">
+        فورم مخصوص درج نمرات سال‌های دوران ترینینگ
+      </h2>
 
-      {/* بخش مشخصات */}
+      {!trainerId && (
+        <p className="text-center text-red-500 mb-4">
+          در حال دریافت شناسه ترینر...
+        </p>
+      )}
+
+      {/* 📋 معلومات شخصی */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="flex flex-col">
-          <label className="mb-1 font-medium">نام دستیار</label>
-          <input
-            type="text"
-            placeholder="نام دستیار"
-            value={residentName}
-            onChange={(e) => setResidentName(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full h-10"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label className="mb-1 font-medium">نام پدر</label>
-          <input
-            type="text"
-            placeholder="نام پدر"
-            value={fatherName}
-            onChange={(e) => setFatherName(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full h-10"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label className="mb-1 font-medium">دپارتمان</label>
-          <input
-            type="text"
-            placeholder="دپارتمان"
-            value={department}
-            onChange={(e) => setDepartment(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full h-10"
-          />
-        </div>
+        <input
+          type="text"
+          placeholder="نام دستیار"
+          value={Name}
+          onChange={(e) => setName(e.target.value)}
+          className={inputClass}
+        />
+        <input
+          type="text"
+          placeholder="نام پدر"
+          value={parentType}
+          onChange={(e) => setparentType(e.target.value)}
+          className={inputClass}
+        />
+        <input
+          type="text"
+          placeholder="دپارتمان"
+          value={department}
+          onChange={(e) => setDepartment(e.target.value)}
+          className={inputClass}
+        />
       </div>
 
-      {/* جدول سال‌های ترینینگ */}
-      <table className="table-auto border-collapse border border-slate-300 text-sm w-full mb-4">
-        <thead className="bg-slate-100">
+      {/* 📊 جدول نمرات سال‌های ترینینگ */}
+      <table className="table-auto border-collapse border w-full text-center">
+        <thead className="bg-gray-100">
           <tr>
             <th className="border px-2 py-2">سال</th>
             <th className="border px-2 py-2">مجموع نمرات</th>
@@ -127,7 +225,7 @@ export default function EvaluationFormHStyled() {
         <tbody>
           {years.map((y, idx) => (
             <tr key={idx}>
-              <td className="border px-2 py-2 text-center">{y.year}</td>
+              <td className="border px-2 py-2">{y.year}</td>
               <td className="border px-2 py-2">
                 <input
                   type="number"
@@ -135,7 +233,7 @@ export default function EvaluationFormHStyled() {
                   onChange={(e) =>
                     handleYearChange(idx, "totalScore", e.target.value)
                   }
-                  className="border rounded px-1 w-full text-center h-9"
+                  className={inputClass}
                 />
               </td>
               <td className="border px-2 py-2">
@@ -145,7 +243,7 @@ export default function EvaluationFormHStyled() {
                   onChange={(e) =>
                     handleYearChange(idx, "instructor", e.target.value)
                   }
-                  className="border rounded px-1 w-full text-center h-9"
+                  className={inputClass}
                 />
               </td>
             </tr>
@@ -153,44 +251,36 @@ export default function EvaluationFormHStyled() {
         </tbody>
       </table>
 
-      {/* اوسط */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="flex flex-col">
-          <label className="mb-1 font-medium">اوسط نمرات</label>
-          <input
-            type="number"
-            placeholder="اوسط نمرات"
-            value={averageScore}
-            onChange={(e) => setAverageScore(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full h-10"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label className="mb-1 font-medium">شف دپارتمان</label>
-          <input
-            type="text"
-            placeholder="شف دپارتمان"
-            value={shiftDepartment}
-            onChange={(e) => setShiftDepartment(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full h-10"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label className="mb-1 font-medium">آمر برنامه آموزشی</label>
-          <input
-            type="text"
-            placeholder="آمر برنامه آموزشی"
-            value={programDirector}
-            onChange={(e) => setProgramDirector(e.target.value)}
-            className="border rounded px-2 py-2 text-center w-full h-10"
-          />
-        </div>
+      {/* 📈 اوسط و بخش پایانی */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
+        <input
+          type="text"
+          placeholder="اوسط نمرات"
+          value={averageScore}
+          onChange={(e) => setAverageScore(e.target.value)}
+          className={inputClass}
+        />
+        <input
+          type="text"
+          placeholder="شف دپارتمان"
+          value={shiftDepartment}
+          onChange={(e) => setShiftDepartment(e.target.value)}
+          className={inputClass}
+        />
+        <input
+          type="text"
+          placeholder="آمر برنامه آموزشی"
+          value={programDirector}
+          onChange={(e) => setProgramDirector(e.target.value)}
+          className={inputClass}
+        />
       </div>
 
       <div className="text-center">
         <button
           onClick={handleSubmit}
-          className="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition"
+          disabled={!trainerId}
+          className="px-6 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition disabled:opacity-50"
         >
           ذخیره فرم
         </button>

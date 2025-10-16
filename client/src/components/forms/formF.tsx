@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 interface Activity {
   id: string;
@@ -9,6 +9,10 @@ interface Activity {
 interface Section {
   name: string;
   activities: Activity[];
+}
+
+interface checklistsProps {
+  trainerIdProp?: string;
 }
 
 const sections: Section[] = [
@@ -41,7 +45,7 @@ const sections: Section[] = [
     name: "سعی در بلند بردن سطح دانش علمی و مسلکی (27%)",
     activities: [
       { id: "morning", title: "اشتراک فعال در راپو صبحانه", percent: 6 },
-      { id: "visits", title: "اشتراک فعال در ویزت‌ها", percent: 6 },
+      { id: "visits", title: "اشتراک فعال در ویزیت‌ها", percent: 6 },
       { id: "conferences", title: "اشتراک فعال در کنفرانس‌ها", percent: 12 },
       {
         id: "license",
@@ -67,8 +71,8 @@ const sections: Section[] = [
       { id: "expression", title: "افاده بیان", percent: 2 },
       { id: "initiative", title: "ابتکار سالم", percent: 2 },
       { id: "leadership", title: "تصمیم و رهبری", percent: 2 },
-      { id: "honesty", title: "راستکاری و همکاری", percent: 2 },
-      { id: "resources", title: "استفاده معقول از منابع", percent: 4 },
+      { id: "honesty", title: "راستکاری و همکاری", percent: 4 },
+      { id: "resources", title: "استفاده معقول از منابع", percent: 2 },
       { id: "responsibility", title: "مسٔولیت‌پذیری", percent: 2 },
       { id: "evaluation", title: "تحلیل و ارزیابی", percent: 2 },
       { id: "feedback", title: "انتقاد و پیشنهاد سازنده", percent: 2 },
@@ -81,13 +85,42 @@ const sections: Section[] = [
 
 const months = Array.from({ length: 12 }, (_, i) => i + 1);
 
-const ChecklistForm: React.FC = () => {
-  const [studentName, setStudentName] = useState("");
-  const [fatherName, setFatherName] = useState("");
-  const [year, setYear] = useState("");
+const ChecklistForm: React.FC<checklistsProps> = ({ trainerIdProp }) => {
+  const [trainerId, setTrainerId] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [parentType, setParentType] = useState("");
+  const [trainingYear, setTrainingYear] = useState("");
   const [scores, setScores] = useState<Record<string, Record<number, number>>>(
     {}
   );
+
+  useEffect(() => {
+    if (trainerIdProp) setTrainerId(trainerIdProp);
+    else alert("هیچ ترینر فعالی یافت نشد!");
+  }, [trainerIdProp]);
+
+  // بارگذاری اطلاعات دانشجو از سرور
+  useEffect(() => {
+    if (!trainerId) return;
+
+    const fetchStudentData = async () => {
+      try {
+        const res = await fetch(
+          `http://localhost:5000/api/trainers/${trainerIdProp}`
+        );
+        if (!res.ok) throw new Error("Failed to fetch student data");
+        const data = await res.json();
+        setName(data.name || "");
+        setParentType(data.parentType || "");
+        setTrainingYear(data.trainingYear || "");
+      } catch (err) {
+        console.error(err);
+        alert("❌ خطا در بارگذاری اطلاعات دانشجو");
+      }
+    };
+
+    fetchStudentData();
+  }, [trainerId]);
 
   const handleScoreChange = (
     activityId: string,
@@ -96,41 +129,46 @@ const ChecklistForm: React.FC = () => {
   ) => {
     setScores((prev) => ({
       ...prev,
-      [activityId]: {
-        ...prev[activityId],
-        [month]: value,
-      },
+      [activityId]: { ...prev[activityId], [month]: value },
     }));
   };
 
-  const calculateTotal = (activity: Activity) => {
-    const monthlyScores = scores[activity.id] || {};
-    return Object.values(monthlyScores).reduce((sum, v) => sum + (v || 0), 0);
-  };
+  const calculateTotal = (activity: Activity) =>
+    Object.values(scores[activity.id] || {}).reduce(
+      (sum, v) => sum + (v || 0),
+      0
+    );
+
+  const calculateSectionTotal = (section: Section) =>
+    section.activities.reduce((sum, act) => sum + calculateTotal(act), 0);
+
+  const calculateOverallTotal = () =>
+    sections.reduce((sum, sec) => sum + calculateSectionTotal(sec), 0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!trainerId) return alert("❌ ID ترینر مشخص نیست!");
 
     const dataToSave = {
-      studentName,
-      fatherName,
-      year,
+      trainerId,
+      name,
+      parentType,
+      trainingYear,
       sections: sections.map((sec) => ({
         name: sec.name,
-        activities: sec.activities.map((act) => {
-          const monthlyScores = months.map((m) => ({
+        activities: sec.activities.map((act) => ({
+          id: act.id,
+          title: act.title,
+          percent: act.percent,
+          months: months.map((m) => ({
             month: m,
             value: scores[act.id]?.[m] || 0,
-          }));
-          return {
-            id: act.id,
-            title: act.title,
-            percent: act.percent,
-            months: monthlyScores,
-            total: monthlyScores.reduce((sum, s) => sum + s.value, 0),
-          };
-        }),
+          })),
+          total: calculateTotal(act),
+        })),
+        sectionTotal: calculateSectionTotal(sec),
       })),
+      overallTotal: calculateOverallTotal(),
     };
 
     try {
@@ -139,112 +177,143 @@ const ChecklistForm: React.FC = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dataToSave),
       });
-      if (!res.ok) throw new Error("Failed to save");
-      alert("✅ ذخیره شد!");
-    } catch (err) {
-      console.error(err);
-      alert("❌ خطا در ذخیره");
+
+      const data = await res.json(); // 👈 این را اضافه کن تا پیام دقیق سرور را بگیری
+
+      if (!res.ok) {
+        // 👇 اگر سرور خطا داد، پیام دقیق را نمایش بده
+        throw new Error(data.error || data.message || "خطای ناشناخته");
+      }
+
+      alert("✅ فرم با موفقیت ذخیره شد!");
+    } catch (err: any) {
+      console.error("❌ خطا در ذخیره داده:", err);
+      alert(`❌ خطا در ذخیره داده: ${err.message}`);
     }
   };
 
   return (
-    <>
-      {/* عنوان ثابت بالا */}
-      <h1 className="text-2xl font-bold mb-4 text-center">
-        چک لیست کاری و ارزیابی ماهوار ترینی‌ها
-      </h1>
-
-      <form
-        onSubmit={handleSubmit}
-        className="max-w-7xl mx-auto p-6 bg-gray-100 rounded-xl shadow-md min-h-[90vh] overflow-auto"
-      >
+    <div style={{ fontFamily: "Calibri, sans-serif" }}>
+      <>
+        <h1 className="text-2xl font-bold mb-4 text-center">
+          چک لیست کاری و ارزیابی ماهوار ترینی‌های شفاخانه نور
+        </h1>
+        {/* اطلاعات ترینی */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <input
             type="text"
             placeholder="نام ترینی"
-            value={studentName}
-            onChange={(e) => setStudentName(e.target.value)}
-            className="border px-3 py-2 rounded-lg"
-            required
+            value={name}
+            readOnly
+            className="border px-3 py-2 rounded-lg bg-gray-200"
           />
           <input
             type="text"
             placeholder="ولد"
-            value={fatherName}
-            onChange={(e) => setFatherName(e.target.value)}
-            className="border px-3 py-2 rounded-lg"
-            required
+            value={parentType}
+            readOnly
+            className="border px-3 py-2 rounded-lg bg-gray-200"
           />
           <input
             type="text"
             placeholder="سال آموزشی"
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            className="border px-3 py-2 rounded-lg"
-            required
+            value={trainingYear}
+            readOnly
+            className="border px-3 py-2 rounded-lg bg-gray-200"
           />
         </div>
 
-        {/* جدول‌ها */}
-        <div className="overflow-auto max-h-[70vh]">
-          {sections.map((section) => (
-            <div key={section.name} className="mb-10 min-w-[900px]">
-              <h2 className="text-lg font-semibold mb-2">{section.name}</h2>
-              <table className="w-full border text-center text-sm bg-white rounded-lg shadow-sm">
-                <thead>
-                  <tr className="bg-gray-200">
-                    <th className="p-2 border">فعالیت</th>
-                    <th className="p-2 border">فیصدی</th>
-                    {months.map((m) => (
-                      <th key={m} className="p-2 border">
-                        {m}
-                      </th>
-                    ))}
-                    <th className="p-2 border">مجموعه نمرات</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {section.activities.map((act) => (
-                    <tr key={act.id}>
-                      <td className="p-2 border">{act.title}</td>
-                      <td className="p-2 border">{act.percent}%</td>
+        <form
+          onSubmit={handleSubmit}
+          className="max-w-7xl mx-auto p-6 bg-gray-100 rounded-xl shadow-md"
+        >
+          {/* جدول‌ها */}
+          <div>
+            {sections.map((section) => (
+              <div key={section.name} className="mb-10 min-w-[900px]">
+                <h2 className="text-lg font-semibold mb-2">{section.name}</h2>
+                <table className="w-full border text-center text-sm bg-white rounded-lg shadow-sm">
+                  <thead>
+                    <tr className="bg-gray-200">
+                      <th className="p-2 border">فعالیت</th>
+                      <th className="p-2 border">فیصدی</th>
                       {months.map((m) => (
-                        <td key={m} className="p-2 border">
-                          <input
-                            type="number"
-                            min={0}
-                            max={act.percent}
-                            value={scores[act.id]?.[m] || ""}
-                            onChange={(e) =>
-                              handleScoreChange(
-                                act.id,
-                                m,
-                                Number(e.target.value)
-                              )
-                            }
-                            className="w-16 border rounded text-center"
-                          />
-                        </td>
+                        <th key={m} className="p-2 border">
+                          {m}
+                        </th>
                       ))}
-                      <td className="p-2 border font-bold">
-                        {calculateTotal(act)}
+                      <th className="p-2 border">مجموعه نمرات</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {section.activities.map((act) => (
+                      <tr key={act.id}>
+                        <td className="p-2 border">{act.title}</td>
+                        <td className="p-2 border">{act.percent}%</td>
+                        {months.map((m) => (
+                          <td key={m} className="p-2 border">
+                            <input
+                              type="number"
+                              min={0}
+                              max={act.percent}
+                              value={scores[act.id]?.[m] || ""}
+                              onChange={(e) =>
+                                handleScoreChange(
+                                  act.id,
+                                  m,
+                                  Number(e.target.value)
+                                )
+                              }
+                              className="w-6 h-5 text-xs border rounded text-center p-0"
+                            />
+                          </td>
+                        ))}
+                        <td className="p-2 border font-bold">
+                          {calculateTotal(act)}
+                        </td>
+                      </tr>
+                    ))}
+
+                    {/* مجموع بخش */}
+                    <tr className="bg-gray-100 font-bold">
+                      <td className="p-2 border" colSpan={2}>
+                        مجموع بخش
+                      </td>
+                      {months.map((m) => {
+                        const totalPerMonth = section.activities.reduce(
+                          (sum, act) => sum + (scores[act.id]?.[m] || 0),
+                          0
+                        );
+                        return (
+                          <td key={m} className="p-2 border">
+                            {totalPerMonth}
+                          </td>
+                        );
+                      })}
+                      <td className="p-2 border">
+                        {calculateSectionTotal(section)}
                       </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ))}
-        </div>
+                  </tbody>
+                </table>
+              </div>
+            ))}
+          </div>
 
-        <button
-          type="submit"
-          className="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          ذخیره
-        </button>
-      </form>
-    </>
+          {/* مجموع کل */}
+          <div className="text-right font-bold text-lg mb-4">
+            مجموع کل نمرات: {calculateOverallTotal()}
+          </div>
+
+          <button
+            type="submit"
+            className="mt-6 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+          >
+            ذخیره
+          </button>
+        </form>
+      </>
+    </div>
   );
 };
 

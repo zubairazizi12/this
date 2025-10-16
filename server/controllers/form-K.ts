@@ -1,37 +1,111 @@
+// controllers/monographEvaluationController.ts
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 import { MonographEvaluation } from "../models/form-K";
 
-// ایجاد فرم جدید
-export const createMonographEvaluation = async (req: Request, res: Response) => {
-  try {
-    const form = new MonographEvaluation({
-      trainer: req.body.trainer,
-      name: req.body.name,
-      lastName: req.body.lastName,
-      fatherName: req.body.fatherName,
-      idNumber: req.body.idNumber,
-      field: req.body.field,
-      trainingYear: req.body.trainingYear,
-      startYear: req.body.startYear,
-      date: req.body.date,
-      evaluations: req.body.evaluations,
-    });
+export class MonographEvaluationController {
+  // 🔹 ایجاد فرم جدید
+  static async create(req: Request, res: Response) {
+    try {
+      const {
+        trainer,
+        name,
+        lastName,
+        parentType,
+        idNumber,
+        department,
+        trainingYear,
+        startYear,
+        date,
+        evaluations,
+      } = req.body;
 
-    await form.save();
-    res.status(201).json(form);
-  } catch (error) {
-    res.status(400).json({ message: "خطا در ایجاد فرم", error });
-  }
-};
+      if (!trainer) {
+        return res.status(400).json({ message: "Trainer ID الزامی است" });
+      }
 
-// گرفتن فرم‌ها بر اساس trainerId
-export const getMonographEvaluations = async (req: Request, res: Response) => {
-  try {
-    const { trainerId } = req.query;
-    const filter = trainerId ? { trainer: trainerId } : {};
-    const forms = await MonographEvaluation.find(filter).populate("trainer");
-    res.json(forms);
-  } catch (error) {
-    res.status(500).json({ message: "خطا در گرفتن فرم‌ها", error });
+        
+      const form = new MonographEvaluation({
+        trainer: new mongoose.Types.ObjectId(trainer),
+        name,
+        lastName,
+        parentType,
+        idNumber,
+        department,
+        trainingYear,
+        startYear,
+        date,
+        evaluations,
+      });
+
+      await form.save();
+      res.status(201).json({ message: "✅ فرم با موفقیت ذخیره شد", form });
+    } catch (error) {
+      console.error("❌ Error creating MonographEvaluation:", error);
+      res.status(500).json({ message: "خطا در ایجاد فرم", error });
+    }
   }
-};
+
+  // 🔹 دریافت همه فرم‌ها یا فیلتر بر اساس trainerId
+  static async getAll(req: Request, res: Response) {
+    try {
+      const { trainerId } = req.query;
+      const filter = trainerId
+        ? { trainer: new mongoose.Types.ObjectId(trainerId as string) }
+        : {};
+
+      const forms = await MonographEvaluation.find(filter)
+        .populate("trainer")
+        .sort({ createdAt: -1 });
+
+      res.status(200).json(forms);
+    } catch (error) {
+      console.error("❌ Error fetching MonographEvaluations:", error);
+      res.status(500).json({ message: "خطا در دریافت فرم‌ها", error });
+    }
+  }
+
+  // 🔹 دریافت فرم بر اساس ID
+  static async getById(req: Request, res: Response) {
+    try {
+      const form = await MonographEvaluation.findById(req.params.id).populate(
+        "trainer"
+      );
+      if (!form) return res.status(404).json({ message: "فرم پیدا نشد" });
+      res.json(form);
+    } catch (error) {
+      console.error("❌ Error fetching MonographEvaluation:", error);
+      res.status(500).json({ message: "خطا در دریافت فرم", error });
+    }
+  }
+
+  // 🔹 بروزرسانی فرم بر اساس ID
+  static async update(req: Request, res: Response) {
+    try {
+      const updated = await MonographEvaluation.findByIdAndUpdate(
+        req.params.id,
+        req.body,
+        { new: true }
+      );
+      if (!updated) return res.status(404).json({ message: "فرم پیدا نشد" });
+      res.json({ message: "✅ فرم بروزرسانی شد", updated });
+    } catch (error) {
+      console.error("❌ Error updating MonographEvaluation:", error);
+      res.status(500).json({ message: "خطا در بروزرسانی فرم", error });
+    }
+  }
+
+  // 🔹 حذف فرم بر اساس ID
+  static async delete(req: Request, res: Response) {
+    try {
+      const deleted = await MonographEvaluation.findByIdAndDelete(
+        req.params.id
+      );
+      if (!deleted) return res.status(404).json({ message: "فرم پیدا نشد" });
+      res.json({ message: "✅ فرم با موفقیت حذف شد" });
+    } catch (error) {
+      console.error("❌ Error deleting MonographEvaluation:", error);
+      res.status(500).json({ message: "خطا در حذف فرم", error });
+    }
+  }
+}
