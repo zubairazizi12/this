@@ -339,22 +339,22 @@ export default function TrainerDetails({
             </h4>
 
             {selectedForm === "C" && (
-              <FormCDetails residentId={trainerId} onClose={() => setSelectedForm(null)} />
+              <FormCDetails trainerId={trainerId} onClose={() => setSelectedForm(null)} />
             )}
             {selectedForm === "D" && (
-              <FormDDetails residentId={trainerId} onClose={() => setSelectedForm(null)} />
+              <FormDDetails trainerId={trainerId} onClose={() => setSelectedForm(null)} />
             )}
             {selectedForm === "E" && (
-              <FormEDetails residentId={trainerId} onClose={() => setSelectedForm(null)} />
+              <FormEDetails trainerId={trainerId} onClose={() => setSelectedForm(null)} />
             )}
             {selectedForm === "G" && (
-              <FormGDetails residentId={trainerId} onClose={() => setSelectedForm(null)} />
+              <FormGDetails trainerId={trainerId} onClose={() => setSelectedForm(null)} />
             )}
             {selectedForm === "H" && (
-              <FormHDetails residentId={trainerId} onClose={() => setSelectedForm(null)} />
+              <FormHDetails trainerId={trainerId} onClose={() => setSelectedForm(null)} />
             )}
             {selectedForm === "K" && (
-              <FormKDetails residentId={trainerId} onClose={() => setSelectedForm(null)} />
+              <FormKDetails trainerId={trainerId} onClose={() => setSelectedForm(null)} />
             )}
           </div>
         )}
