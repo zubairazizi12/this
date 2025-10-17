@@ -102,3 +102,13 @@
   - Application fully functional with in-memory storage fallback
   - All migration tasks completed and verified
   - Import to Replit environment completed successfully ✓
+[x] 28. Separate Actions and Reward/Punishment Display - October 17, 2025:
+  - Created TrainerRewardPunishmentListModal component for displaying rewards/punishments
+  - Updated TrainerDetails component with two separate buttons: "اکشن‌ها" and "مجازات/مکافات"
+  - Actions button (blue) displays TrainerActionsListModal when clicked
+  - Reward/Punishment button (purple) displays TrainerRewardPunishmentListModal when clicked
+  - Each modal shows description, date, and files with download functionality
+  - Reward/Punishment modal color-codes records (green for reward, red for punishment)
+  - Admin users can delete records from both modals
+  - No LSP errors, all features working correctly
+  - Server restarted successfully

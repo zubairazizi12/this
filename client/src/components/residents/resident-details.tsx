@@ -8,6 +8,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import TrainerActionsListModal from "@/components/reports/TrainerActionsListModal";
+import TrainerRewardPunishmentListModal from "@/components/reports/TrainerRewardPunishmentListModal";
 // فرم‌های شما همان قبلی می‌مانند:
 import FormCDetails from "@/components/residents/form-details/formC-detail";
 import FormDDetails from "@/components/residents/form-details/formD-detail";
@@ -43,6 +45,8 @@ export default function TrainerDetails({
   onClose,
 }: TrainerDetailsProps) {
   const [selectedForm, setSelectedForm] = useState<string | null>(null);
+  const [showActionsModal, setShowActionsModal] = useState(false);
+  const [showRewardPunishmentModal, setShowRewardPunishmentModal] = useState(false);
 
   // اینجا از API ترینر استفاده می‌کنیم
   const { data: trainer, isLoading } = useQuery({
@@ -55,7 +59,7 @@ export default function TrainerDetails({
 
   return (
     <div className="relative bg-white rounded-lg shadow-lg border border-slate-200 p-6">
-      {/* ردیف بالا: عکس + دکمه فرم‌ها + اکشن */}
+      {/* ردیف بالا: عکس + دکمه فرم‌ها + اکشن‌ها */}
       <div className="flex items-center justify-between mb-4 w-full">
         <div className="flex-shrink-0 w-24 h-24 rounded-full border border-slate-300 overflow-hidden">
           {trainer.profileImageUrl ? (
@@ -93,9 +97,20 @@ export default function TrainerDetails({
           ))}
         </div>
 
-        <div className="flex-shrink-0">
-          <Button size="sm" className="bg-red-500 text-white hover:bg-red-600">
-            Disciplinary Actions
+        <div className="flex-shrink-0 flex gap-2">
+          <Button 
+            size="sm" 
+            className="bg-blue-500 text-white hover:bg-blue-600"
+            onClick={() => setShowActionsModal(true)}
+          >
+            اکشن‌ها
+          </Button>
+          <Button 
+            size="sm" 
+            className="bg-purple-500 text-white hover:bg-purple-600"
+            onClick={() => setShowRewardPunishmentModal(true)}
+          >
+            مجازات/مکافات
           </Button>
         </div>
       </div>
@@ -183,13 +198,28 @@ export default function TrainerDetails({
 
           {selectedForm === "K" && (
             <FormKDetails
-              trainerId={trainerId} // یا trainerId
+              trainerId={trainerId}
               onClose={() => setSelectedForm(null)}
             />
           )}
-          {/* بقیه فرم‌ها را هم مشابه اضافه کنید */}
         </DialogContent>
       </Dialog>
+
+      {/* مودال اکشن‌ها */}
+      <TrainerActionsListModal
+        trainerId={trainerId}
+        trainerName={`${trainer.name} ${trainer.lastName}`}
+        isOpen={showActionsModal}
+        onClose={() => setShowActionsModal(false)}
+      />
+
+      {/* مودال مجازات/مکافات */}
+      <TrainerRewardPunishmentListModal
+        trainerId={trainerId}
+        trainerName={`${trainer.name} ${trainer.lastName}`}
+        isOpen={showRewardPunishmentModal}
+        onClose={() => setShowRewardPunishmentModal(false)}
+      />
     </div>
   );
 }
