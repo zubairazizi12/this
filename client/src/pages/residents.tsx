@@ -5,6 +5,7 @@ import TrainerRegistrationForm from "@/components/forms/TrainerRegistrationForm"
 import TrainerDetails from "@/components/residents/resident-details";
 import TrainerDetailsModal from "@/components/residents/ResidentDetailsModal";
 import TrainerActionModal from "@/components/residents/TrainerActionModal";
+import TrainerRewardPunishmentModal from "@/components/residents/TrainerRewardPunishmentModal";
 
 import {
   Select,
@@ -71,6 +72,9 @@ export default function TrainersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
   const [selectedActionTrainer, setSelectedActionTrainer] =
+    useState<Trainer | null>(null);
+  const [isRewardPunishmentModalOpen, setIsRewardPunishmentModalOpen] = useState(false);
+  const [selectedRewardPunishmentTrainer, setSelectedRewardPunishmentTrainer] =
     useState<Trainer | null>(null);
   const { data: trainers = [], isLoading } = useQuery<Trainer[]>({
     queryKey: ["/api/trainers"],
@@ -205,6 +209,7 @@ export default function TrainersPage() {
               <th className="p-2 text-center">اضافه نمودن فرم</th>
               <th className="p-2 text-center">جزئیات</th>
               <th className="p-2 text-center">اکشن</th>
+              <th className="p-2 text-center">مجازات/مکافات</th>
             </tr>
           </thead>
           <tbody>
@@ -305,6 +310,23 @@ export default function TrainersPage() {
                     </Button>
                   )}
                 </td>
+
+                {/* مجازات/مکافات */}
+                <td className="p-2 text-center">
+                  {user?.role === "admin" && (
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="bg-amber-50 hover:bg-amber-100 border-amber-200"
+                      onClick={() => {
+                        setSelectedRewardPunishmentTrainer(trainer);
+                        setIsRewardPunishmentModalOpen(true);
+                      }}
+                    >
+                      <MoreHorizontal className="h-4 w-4 text-amber-600" />
+                    </Button>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -337,6 +359,17 @@ export default function TrainersPage() {
             onClose={() => {
               setIsActionModalOpen(false);
               setSelectedActionTrainer(null);
+            }}
+          />
+        )}
+        {selectedRewardPunishmentTrainer && (
+          <TrainerRewardPunishmentModal
+            trainerId={selectedRewardPunishmentTrainer._id}
+            trainerName={`${selectedRewardPunishmentTrainer.name} ${selectedRewardPunishmentTrainer.lastName}`}
+            isOpen={isRewardPunishmentModalOpen}
+            onClose={() => {
+              setIsRewardPunishmentModalOpen(false);
+              setSelectedRewardPunishmentTrainer(null);
             }}
           />
         )}
