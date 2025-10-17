@@ -86,3 +86,12 @@
   - Verified download functionality for both action files and reward/punishment files
   - All changes reviewed and approved by architect
   - No LSP errors, application running smoothly
+[x] 26. Sidebar Mobile & Header Enhancements - October 17, 2025:
+  - Added header display in sidebar for both mobile and desktop views
+  - Fixed mobile sidebar close functionality with stopPropagation
+  - Mobile: Header with close button (X) in sidebar
+  - Desktop: Header with full branding in sidebar
+  - Backdrop and close button now properly dismiss mobile sidebar
+  - Removed unused imports (Header component, useState, useEffect)
+  - All changes reviewed and approved by architect
+  - Mobile sidebar now fully functional
