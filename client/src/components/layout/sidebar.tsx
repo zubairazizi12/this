@@ -1,10 +1,12 @@
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { Users, BarChart3, LogOut, SettingsIcon } from "lucide-react";
+import { Users, BarChart3, LogOut, SettingsIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Header from "@/components/layout/header";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useState, useEffect } from "react";
 
 const navigation = [
   { name: 'ترینری', href: '/residents', icon: Users },
@@ -16,20 +18,57 @@ const navigation = [
   // { name: 'درباره ما', href: '/about', icon: InfoIcon },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const [location] = useLocation();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
 
   const handleLogout = () => {
     window.location.href = "/api/logout";
   };
 
+  const handleLinkClick = () => {
+    if (isMobile && onClose) {
+      onClose();
+    }
+  };
+
   return (
-    
-    <div className="fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-lg">
+    <>
+      {/* Backdrop overlay for mobile */}
+      {isMobile && isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40"
+          onClick={onClose}
+        />
+      )}
+      
+      {/* Sidebar */}
+      <div className={cn(
+        "fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-lg transition-transform duration-300 ease-in-out",
+        isMobile && !isOpen && "translate-x-full"
+      )}>
       <Header />
       <div className="flex flex-col h-full">
-        {/* Logo */}
+        {/* Close button for mobile */}
+        {isMobile && (
+          <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200">
+            <h2 className="text-lg font-semibold text-slate-900">منو</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="hover:bg-slate-100"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+        )}
         
         <div className="flex items-center justify-center h-16 px-4">
           {/* <svg
@@ -81,12 +120,16 @@ export default function Sidebar() {
             
             return (
               <Link key={item.name} href={item.href}>
-                <div className={cn(
-                  "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                  isActive
-                    ? "bg-hospital-green-50 text-hospital-green-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                )} data-testid={`link-${item.name.toLowerCase()}`}>
+                <div 
+                  onClick={handleLinkClick}
+                  className={cn(
+                    "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer",
+                    isActive
+                      ? "bg-hospital-green-50 text-hospital-green-700"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  )} 
+                  data-testid={`link-${item.name.toLowerCase()}`}
+                >
                   <Icon className="ml-3 h-5 w-5" />
                   {item.name}
                 </div>
@@ -109,6 +152,7 @@ export default function Sidebar() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
