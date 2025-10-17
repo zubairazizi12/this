@@ -53,8 +53,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         "fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-lg transition-transform duration-300 ease-in-out",
         isMobile && !isOpen && "translate-x-full"
       )}>
-      <Header />
-      <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full">
         {/* Close button for mobile */}
         {isMobile && (
           <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200">
@@ -150,8 +149,8 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
             خروج
           </Button>
         </div>
+        </div>
       </div>
-    </div>
     </>
   );
 }

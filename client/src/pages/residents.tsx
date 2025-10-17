@@ -17,7 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Search, Eye, MoreHorizontal, Plus, X } from "lucide-react";
 import FormModal from "@/components/forms/form-modal";
-import Sidebar from "@/components/layout/sidebar";
+import Layout from "@/components/layout/Layout";
 import { useAuth } from "@/hooks/useAuth";
 
 type Trainer = {
@@ -112,9 +112,8 @@ export default function TrainersPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50">
-        <Sidebar />
-        <div className="mr-64 p-6">
+      <Layout>
+        <div className="p-4 md:p-6">
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-slate-200 rounded w-64"></div>
             <div className="h-20 bg-slate-200 rounded"></div>
@@ -125,28 +124,28 @@ export default function TrainersPage() {
             </div>
           </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Sidebar />
-      <div className="mr-64 p-6 py-20">
+    <Layout>
+      <div className="p-4 md:p-6 pt-6">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b border-slate-200 -m-6 mb-6">
-          <div className="px-6 py-4 flex items-center justify-between">
-            <h1 className="text-2xl font-semibold text-slate-900">
+        <header className="bg-white shadow-sm border-b border-slate-200 -m-4 md:-m-6 mb-6">
+          <div className="px-4 md:px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <h1 className="text-xl md:text-2xl font-semibold text-slate-900">
               مدیریت ترینرها
             </h1>
             {user?.role === "admin" && (
               <>
                 <Button
-                  className="bg-hospital-green-600 hover:bg-hospital-green-700"
+                  className="bg-hospital-green-600 hover:bg-hospital-green-700 w-full md:w-auto"
                   onClick={() => setShowForm(true)}
                 >
                   <Plus className="h-4 w-4 ml-2" />
-                  افزودن ترینر جدید
+                  <span className="hidden sm:inline">افزودن ترینر جدید</span>
+                  <span className="sm:hidden">افزودن ترینر</span>
                 </Button>
 
                 {showForm && (
@@ -171,19 +170,19 @@ export default function TrainersPage() {
         </header>
 
         {/* Search and Filters */}
-        <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex flex-wrap items-center gap-4">
-          <div className="relative">
+        <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center gap-4">
+          <div className="relative flex-1 md:flex-initial">
             <Search className="h-4 w-4 absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
             <Input
               type="text"
               placeholder="جستجو ترینری..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pr-10 w-64"
+              className="pr-10 w-full md:w-64"
             />
           </div>
           <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full md:w-48">
               <SelectValue placeholder="همه بخش‌ها" />
             </SelectTrigger>
             <SelectContent>
@@ -198,6 +197,7 @@ export default function TrainersPage() {
         </div>
 
         {/* Table */}
+        <div className="overflow-x-auto -mx-4 md:mx-0">
         <table className="min-w-full border border-slate-200 text-sm">
           <thead className="bg-slate-100 text-slate-700 font-semibold">
             <tr>
@@ -331,6 +331,7 @@ export default function TrainersPage() {
             ))}
           </tbody>
         </table>
+        </div>
 
         {/* Modals */}
 
@@ -374,6 +375,6 @@ export default function TrainersPage() {
           />
         )}
       </div>
-    </div>
+    </Layout>
   );
 }
