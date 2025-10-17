@@ -12,6 +12,7 @@ interface IActivity {
 // 🔹 ساختار اصلی سند
 export interface ITeacherActivity extends Document {
   trainerId: mongoose.Types.ObjectId;  // ارجاع به ترینر
+  academicYearId?: mongoose.Types.ObjectId; // رفرنس به سال تحصیلی
   name: string;                        // نام ترینر
   parentType: string;                  // نام پدر
   trainingYear: string;                // سال تریننگ
@@ -42,6 +43,10 @@ const TeacherActivitySchema = new Schema<ITeacherActivity>(
       type: Schema.Types.ObjectId,
       ref: "Trainer",
       required: true,
+    },
+    academicYearId: {
+      type: Schema.Types.ObjectId,
+      ref: "TrainerAcademicYear",
     },
     name: { type: String, required: true },
     parentType: { type: String, required: true },

@@ -16,6 +16,7 @@ export interface IMonographRow {
 // ساختار کامل فرم
 export interface IMonographEvaluation extends Document {
   trainer: Types.ObjectId; // رفرنس به جدول Trainer
+  academicYearId?: Types.ObjectId; // رفرنس به سال تحصیلی
   name: string;
   lastName: string;
   parentType: string;
@@ -41,6 +42,10 @@ const MonographRowSchema: Schema = new Schema({
 
 const MonographEvaluationSchema: Schema = new Schema({
   trainer: { type: Schema.Types.ObjectId, ref: "Trainer", required: true },
+  academicYearId: {
+    type: Schema.Types.ObjectId,
+    ref: "TrainerAcademicYear",
+  },
   name: { type: String, required: true },
   lastName: { type: String, required: true },
   parentType: { type: String, required: true },

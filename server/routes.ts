@@ -5,6 +5,7 @@ import { UserController, ResidentController, TeacherController } from "./control
 import { trainerRoutes } from "./routes/trainerRoutes";
 import { trainerActionRoutes } from "./routes/trainerActionRoutes";
 import { trainerRewardPunishmentRoutes } from "./routes/trainerRewardPunishmentRoutes";
+import { trainerAcademicYearRoutes } from "./routes/trainer-academic-year";
 import { userRoutes } from "./routes/userRoutes";
 import { lectureRoutes } from "./routes/lectureRoutes";
 import { TeacherModel } from "./models";
@@ -23,6 +24,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   //tranerRoters
   app.use('/api/trainer-actions', isDemoAuthenticated, trainerActionRoutes);
   app.use('/api/trainer-reward-punishment', isDemoAuthenticated, trainerRewardPunishmentRoutes);
+  app.use('/api/trainer-academic-years', isDemoAuthenticated, trainerAcademicYearRoutes);
   app.use('/api/trainers', trainerRoutes);
   
   ///////////////////////////////////////////

@@ -20,6 +20,7 @@ interface IPersianRow {
 
 export interface IRotationForm extends Document {
   trainerId: mongoose.Schema.Types.ObjectId;
+  academicYearId?: mongoose.Schema.Types.ObjectId; // رفرنس به سال تحصیلی
   header: {
     name: string;
     parentType: string;
@@ -56,6 +57,10 @@ const PersianRowSchema = new Schema<IPersianRow>({
 
 const RotationFormSchema = new Schema<IRotationForm>({
   trainerId: { type: mongoose.Schema.Types.ObjectId, ref: "Trainer", required: true },
+  academicYearId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "TrainerAcademicYear",
+  },
   header: {
     name: { type: String, required: true },
     parentType: { type: String, default: "" },

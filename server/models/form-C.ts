@@ -3,6 +3,7 @@ import mongoose, { Document, Schema, Types } from "mongoose";
 
 export interface IMonographEvaluationForm extends Document {
   trainer: Types.ObjectId; // ⬅️ رفرنس به Trainer
+  academicYearId?: Types.ObjectId; // رفرنس به سال تحصیلی
   name: string;
   lastName: string;
   parentType: string;
@@ -39,6 +40,10 @@ const MonographEvaluationFormSchema: Schema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Trainer", // ⬅️ به مدل Trainer وصل می‌شود
       required: true,
+    },
+    academicYearId: {
+      type: Schema.Types.ObjectId,
+      ref: "TrainerAcademicYear", // رفرنس به سال تحصیلی
     },
     name: { type: String, required: true },
     lastName: { type: String, required: true },

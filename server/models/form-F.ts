@@ -20,6 +20,7 @@ interface Section {
 
 export interface IChecklist extends Document {
   trainerId: mongoose.Types.ObjectId; // ✅ اضافه شد
+  academicYearId?: mongoose.Types.ObjectId; // رفرنس به سال تحصیلی
   name: string;
   parentType: string;
   trainingYear: string;
@@ -50,6 +51,10 @@ const ChecklistSchema = new Schema<IChecklist>({
     type: Schema.Types.ObjectId,
     ref: "Trainer", // ✅ رفرنس به کالکشن ترینرها
     required: true,
+  },
+  academicYearId: {
+    type: Schema.Types.ObjectId,
+    ref: "TrainerAcademicYear",
   },
   name: { type: String, required: true },
   parentType: { type: String, required: true },

@@ -6,6 +6,8 @@ import TrainerDetails from "@/components/residents/resident-details";
 import TrainerDetailsModal from "@/components/residents/ResidentDetailsModal";
 import TrainerActionModal from "@/components/residents/TrainerActionModal";
 import TrainerRewardPunishmentModal from "@/components/residents/TrainerRewardPunishmentModal";
+import { TrainerAcademicYearModal } from "@/components/trainers/TrainerAcademicYearModal";
+import { TrainerPromotionModal } from "@/components/trainers/TrainerPromotionModal";
 
 import {
   Select,
@@ -75,6 +77,10 @@ export default function TrainersPage() {
     useState<Trainer | null>(null);
   const [isRewardPunishmentModalOpen, setIsRewardPunishmentModalOpen] = useState(false);
   const [selectedRewardPunishmentTrainer, setSelectedRewardPunishmentTrainer] =
+    useState<Trainer | null>(null);
+  const [isAcademicYearModalOpen, setIsAcademicYearModalOpen] = useState(false);
+  const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
+  const [selectedAcademicYearTrainer, setSelectedAcademicYearTrainer] =
     useState<Trainer | null>(null);
   const { data: trainers = [], isLoading } = useQuery<Trainer[]>({
     queryKey: ["/api/trainers"],
@@ -206,6 +212,7 @@ export default function TrainersPage() {
               <th className="p-2 text-center">تخلص</th>
               <th className="p-2 text-center">آیدی</th>
               <th className="p-2 text-center">دپارتمان</th>
+              <th className="p-2 text-center">سال تحصیلی</th>
               <th className="p-2 text-center">اضافه نمودن فرم</th>
               <th className="p-2 text-center">جزئیات</th>
               <th className="p-2 text-center">اکشن</th>
@@ -229,6 +236,41 @@ export default function TrainersPage() {
                 <td className="p-2 text-center">{trainer.lastName}</td>
                 <td className="p-2 text-center">{trainer.id}</td>
                 <td className="p-2 text-center">{trainer.department}</td>
+
+                {/* سال تحصیلی */}
+                <td className="p-2 text-center">
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-sm font-medium text-blue-600">
+                      {trainer.trainingYear || "ثبت نشده"}
+                    </span>
+                    {user?.role === "admin" && (
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 text-xs text-green-600 hover:text-green-700"
+                          onClick={() => {
+                            setSelectedAcademicYearTrainer(trainer);
+                            setIsAcademicYearModalOpen(true);
+                          }}
+                        >
+                          ثبت
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700"
+                          onClick={() => {
+                            setSelectedAcademicYearTrainer(trainer);
+                            setIsPromotionModalOpen(true);
+                          }}
+                        >
+                          ارتقا
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </td>
 
                 {/* اضافه کردن فرم */}
                 <td className="p-2 text-center relative">
@@ -371,6 +413,37 @@ export default function TrainersPage() {
             onClose={() => {
               setIsRewardPunishmentModalOpen(false);
               setSelectedRewardPunishmentTrainer(null);
+            }}
+          />
+        )}
+        {selectedAcademicYearTrainer && (
+          <TrainerAcademicYearModal
+            trainerId={selectedAcademicYearTrainer._id}
+            trainerName={`${selectedAcademicYearTrainer.name} ${selectedAcademicYearTrainer.lastName}`}
+            isOpen={isAcademicYearModalOpen}
+            onClose={() => {
+              setIsAcademicYearModalOpen(false);
+              setSelectedAcademicYearTrainer(null);
+            }}
+            onSuccess={() => {
+              // Refresh trainers list
+              window.location.reload();
+            }}
+          />
+        )}
+        {selectedAcademicYearTrainer && (
+          <TrainerPromotionModal
+            trainerId={selectedAcademicYearTrainer._id}
+            trainerName={`${selectedAcademicYearTrainer.name} ${selectedAcademicYearTrainer.lastName}`}
+            currentYear={selectedAcademicYearTrainer.trainingYear}
+            isOpen={isPromotionModalOpen}
+            onClose={() => {
+              setIsPromotionModalOpen(false);
+              setSelectedAcademicYearTrainer(null);
+            }}
+            onSuccess={() => {
+              // Refresh trainers list
+              window.location.reload();
             }}
           />
         )}

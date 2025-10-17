@@ -23,6 +23,7 @@ interface IPersonalInfo {
 
 export interface IEvaluationFormG extends Document {
   trainer: Types.ObjectId; // رفرنس به Trainer
+  academicYearId?: Types.ObjectId; // رفرنس به سال تحصیلی
   personalInfo: IPersonalInfo;
   scores: IScoreRow[]; // شش ردیف شامل ردیف ششم اوسط
   averageScore: number;
@@ -53,6 +54,10 @@ const EvaluationFormGSchema = new Schema<IEvaluationFormG>(
       type: Schema.Types.ObjectId,
       ref: "Trainer", // رفرنس به مدل Trainer
       required: true,
+    },
+    academicYearId: {
+      type: Schema.Types.ObjectId,
+      ref: "TrainerAcademicYear",
     },
     personalInfo: { type: PersonalInfoSchema, required: true },
     scores: { type: [ScoreRowSchema], required: true },

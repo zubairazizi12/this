@@ -16,6 +16,7 @@ export interface IConferenceItem {
  */
 export interface IConferenceEvaluation extends Document {
   trainer: Types.ObjectId;
+  academicYearId?: Types.ObjectId; // رفرنس به سال تحصیلی
   year: string;
   name: string;
   parentType: string;
@@ -39,6 +40,10 @@ const ConferenceItemSchema = new Schema<IConferenceItem>({
 const ConferenceEvaluationSchema = new Schema<IConferenceEvaluation>(
   {
     trainer: { type: Schema.Types.ObjectId, ref: "Trainer", required: true },
+    academicYearId: {
+      type: Schema.Types.ObjectId,
+      ref: "TrainerAcademicYear",
+    },
     year: { type: String, required: true },
     name: { type: String, required: true },
     parentType: { type: String, required: true },

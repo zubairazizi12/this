@@ -8,6 +8,7 @@ interface ITrainingYear {
 
 export interface IEvaluationFormH extends Document {
   trainer: Types.ObjectId; // ⬅️ رفرنس به Trainer
+  academicYearId?: Types.ObjectId; // رفرنس به سال تحصیلی
   Name: string;
   parentType: string;
   department: string;
@@ -29,6 +30,10 @@ const EvaluationFormHSchema = new Schema<IEvaluationFormH>(
       type: Schema.Types.ObjectId,
       ref: "Trainer", // ⬅️ به مدل Trainer وصل می‌شود
       required: true,
+    },
+    academicYearId: {
+      type: Schema.Types.ObjectId,
+      ref: "TrainerAcademicYear",
     },
     Name: { type: String, required: true },
     parentType: { type: String, required: true },
