@@ -4,9 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Users, BarChart3, LogOut, SettingsIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import Header from "@/components/layout/header";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useState, useEffect } from "react";
 
 const navigation = [
   { name: 'ترینری', href: '/residents', icon: Users },
@@ -44,7 +42,7 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
       {isMobile && isOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40"
-          onClick={onClose}
+          onClick={() => onClose?.()}
         />
       )}
       
@@ -53,27 +51,42 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         "fixed inset-y-0 right-0 z-50 w-64 bg-white shadow-lg transition-transform duration-300 ease-in-out",
         isMobile && !isOpen && "translate-x-full"
       )}>
-        <div className="flex flex-col h-full">
-        {/* Close button for mobile */}
-        {isMobile && (
-          <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900">منو</h2>
+        <div className="flex flex-col h-full" onClick={(e) => e.stopPropagation()}>
+        {/* Header - برای sidebar */}
+        {!isMobile ? (
+          <div className="border-b border-slate-200 bg-green-600 text-white px-4 py-3">
+            <div className="flex items-center justify-center gap-2">
+              <img
+                src="/logo.svg"
+                alt="Logo"
+                className="h-10 w-10"
+              />
+              <h2 className="text-base font-bold text-center">
+                سیستم مدیریتی ترینری شفاخانه چشم نور
+              </h2>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between px-4 py-3 bg-green-600 text-white border-b border-slate-200">
+            <div className="flex items-center gap-2 flex-1">
+              <img
+                src="/logo.svg"
+                alt="Logo"
+                className="h-8 w-8"
+              />
+              <h2 className="text-sm font-bold">
+                سیستم مدیریتی ترینری
+              </h2>
+            </div>
             <Button
               variant="ghost"
               size="icon"
-              onClick={onClose}
-              className="hover:bg-slate-100 focus:ring-2 focus:ring-hospital-green-500"
+              onClick={() => onClose?.()}
+              className="text-white hover:bg-green-700"
               aria-label="بستن منوی ناوبری"
             >
               <X className="h-5 w-5" />
             </Button>
-          </div>
-        )}
-        
-        {/* Header */}
-        {!isMobile && (
-          <div className="border-b border-slate-200 -mx-4">
-            <Header />
           </div>
         )}
         
