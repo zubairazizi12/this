@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import FormCDetails from "@/components/residents/form-details/formC-detail";
 import FormDDetails from "@/components/residents/form-details/formD-detail";
@@ -38,8 +39,7 @@ export default function TrainerDetails({
   onClose,
 }: TrainerDetailsProps) {
   const [selectedForm, setSelectedForm] = useState<string | null>(null);
-  const [showActions, setShowActions] = useState(false);
-  const [showRewardPunishment, setShowRewardPunishment] = useState(false);
+  const [showActionsSection, setShowActionsSection] = useState(false);
 
   const { data: trainer, isLoading, error } = useQuery({
     queryKey: ["trainer", trainerId],
@@ -133,16 +133,9 @@ export default function TrainerDetails({
             <Button 
               size="sm" 
               className="bg-hospital-green-600 text-white hover:bg-hospital-green-700"
-              onClick={() => setShowActions(!showActions)}
+              onClick={() => setShowActionsSection(!showActionsSection)}
             >
-              اکشن‌ها ({actions.length})
-            </Button>
-            <Button 
-              size="sm" 
-              className="bg-amber-500 text-white hover:bg-amber-600"
-              onClick={() => setShowRewardPunishment(!showRewardPunishment)}
-            >
-              مجازات/مکافات ({rewardPunishments.length})
+              اکشن‌ها و مجازات/مکافات ({actions.length + rewardPunishments.length})
             </Button>
           </div>
         </div>
@@ -179,155 +172,163 @@ export default function TrainerDetails({
           </div>
         </div>
 
-        {/* اکشن‌ها */}
-        {showActions && (
+        {/* بخش اکشن‌ها و مجازات/مکافات */}
+        {showActionsSection && (
           <div className="mt-6 border-t border-slate-200 pt-4">
-            <h4 className="font-medium text-slate-900 mb-4">اکشن‌های ترینری</h4>
-            
-            {actions.length === 0 ? (
-              <div className="text-center py-8 text-slate-500">
-                هیچ اکشنی ثبت نشده است
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {actions.map((action: any) => (
-                  <div
-                    key={action._id}
-                    className="border rounded-lg p-4 bg-slate-50 hover:shadow-md transition-shadow"
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <p className="text-sm text-slate-600 mb-2">
-                          تاریخ:{" "}
-                          {new Date(action.createdAt).toLocaleDateString("fa-IR")}
-                        </p>
-                        <p className="text-base font-medium">{action.description}</p>
-                      </div>
-                    </div>
+            <Tabs defaultValue="actions" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="actions">
+                  اکشن‌ها ({actions.length})
+                </TabsTrigger>
+                <TabsTrigger value="rewards">
+                  مجازات/مکافات ({rewardPunishments.length})
+                </TabsTrigger>
+              </TabsList>
 
-                    {action.selectedForms && action.selectedForms.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-slate-300">
-                        <p className="text-sm font-semibold text-slate-600 mb-2">
-                          فرم‌های مرتبط:
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {action.selectedForms.map((formType: string) => {
-                            const form = FORM_TYPES.find((f) => f.type === formType);
-                            return (
-                              <span
-                                key={formType}
-                                className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-hospital-green-100 text-hospital-green-800"
-                              >
-                                فرم {formType}
-                                {form && ` - ${form.name}`}
+              {/* تب اکشن‌ها */}
+              <TabsContent value="actions" className="mt-4">
+                {actions.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500">
+                    هیچ اکشنی ثبت نشده است
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {actions.map((action: any) => (
+                      <div
+                        key={action._id}
+                        className="border rounded-lg p-4 bg-slate-50 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex-1">
+                            <p className="text-sm text-slate-600 mb-2">
+                              تاریخ:{" "}
+                              {new Date(action.createdAt).toLocaleDateString("fa-IR")}
+                            </p>
+                            <p className="text-base font-medium">{action.description}</p>
+                          </div>
+                        </div>
+
+                        {action.selectedForms && action.selectedForms.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-slate-300">
+                            <p className="text-sm font-semibold text-slate-600 mb-2">
+                              فرم‌های مرتبط:
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {action.selectedForms.map((formType: string) => {
+                                const form = FORM_TYPES.find((f) => f.type === formType);
+                                return (
+                                  <span
+                                    key={formType}
+                                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-hospital-green-100 text-hospital-green-800"
+                                  >
+                                    فرم {formType}
+                                    {form && ` - ${form.name}`}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {action.files && action.files.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-slate-300">
+                            <p className="text-sm font-semibold text-slate-600 mb-2">
+                              فایل‌های پیوست:
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {action.files.map((file: any, index: number) => (
+                                <Button
+                                  key={index}
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-2"
+                                  onClick={() => {
+                                    const link = document.createElement("a");
+                                    link.href = `/api/trainer-actions/download/${file.filename}`;
+                                    link.download = file.originalName;
+                                    link.click();
+                                  }}
+                                >
+                                  <Download className="h-3 w-3" />
+                                  {file.originalName}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* تب مجازات/مکافات */}
+              <TabsContent value="rewards" className="mt-4">
+                {rewardPunishments.length === 0 ? (
+                  <div className="text-center py-8 text-slate-500">
+                    هیچ رکوردی ثبت نشده است
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {rewardPunishments.map((record: any) => (
+                      <div
+                        key={record._id}
+                        className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                          record.type === "reward" 
+                            ? "bg-green-50 border-green-200" 
+                            : "bg-red-50 border-red-200"
+                        }`}
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+                                record.type === "reward" 
+                                  ? "bg-green-100 text-green-800" 
+                                  : "bg-red-100 text-red-800"
+                              }`}>
+                                {record.type === "reward" ? "مکافات" : "مجازات"}
                               </span>
-                            );
-                          })}
+                              <p className="text-sm text-slate-600">
+                                تاریخ: {new Date(record.createdAt).toLocaleDateString("fa-IR")}
+                              </p>
+                            </div>
+                            <p className="text-base font-medium">{record.description}</p>
+                          </div>
                         </div>
-                      </div>
-                    )}
 
-                    {action.files && action.files.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-slate-300">
-                        <p className="text-sm font-semibold text-slate-600 mb-2">
-                          فایل‌های پیوست:
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {action.files.map((file: any, index: number) => (
-                            <Button
-                              key={index}
-                              size="sm"
-                              variant="outline"
-                              className="gap-2"
-                              onClick={() => {
-                                const link = document.createElement("a");
-                                link.href = `/api/trainer-actions/download/${file.filename}`;
-                                link.download = file.originalName;
-                                link.click();
-                              }}
-                            >
-                              <Download className="h-3 w-3" />
-                              {file.originalName}
-                            </Button>
-                          ))}
-                        </div>
+                        {record.files && record.files.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-slate-300">
+                            <p className="text-sm font-semibold text-slate-600 mb-2">
+                              فایل‌های پیوست:
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {record.files.map((file: any, index: number) => (
+                                <Button
+                                  key={index}
+                                  size="sm"
+                                  variant="outline"
+                                  className="gap-2"
+                                  onClick={() => {
+                                    const link = document.createElement("a");
+                                    link.href = `/api/trainer-reward-punishment/download/${file.filename}`;
+                                    link.download = file.originalName;
+                                    link.click();
+                                  }}
+                                >
+                                  <Download className="h-3 w-3" />
+                                  {file.originalName}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* مجازات/مکافات */}
-        {showRewardPunishment && (
-          <div className="mt-6 border-t border-slate-200 pt-4">
-            <h4 className="font-medium text-slate-900 mb-4">مجازات و مکافات</h4>
-            
-            {rewardPunishments.length === 0 ? (
-              <div className="text-center py-8 text-slate-500">
-                هیچ رکوردی ثبت نشده است
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {rewardPunishments.map((record: any) => (
-                  <div
-                    key={record._id}
-                    className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
-                      record.type === "reward" 
-                        ? "bg-green-50 border-green-200" 
-                        : "bg-red-50 border-red-200"
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
-                            record.type === "reward" 
-                              ? "bg-green-100 text-green-800" 
-                              : "bg-red-100 text-red-800"
-                          }`}>
-                            {record.type === "reward" ? "مکافات" : "مجازات"}
-                          </span>
-                          <p className="text-sm text-slate-600">
-                            تاریخ: {new Date(record.createdAt).toLocaleDateString("fa-IR")}
-                          </p>
-                        </div>
-                        <p className="text-base font-medium">{record.description}</p>
-                      </div>
-                    </div>
-
-                    {record.files && record.files.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-slate-300">
-                        <p className="text-sm font-semibold text-slate-600 mb-2">
-                          فایل‌های پیوست:
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {record.files.map((file: any, index: number) => (
-                            <Button
-                              key={index}
-                              size="sm"
-                              variant="outline"
-                              className="gap-2"
-                              onClick={() => {
-                                const link = document.createElement("a");
-                                link.href = `/api/trainer-reward-punishment/download/${file.filename}`;
-                                link.download = file.originalName;
-                                link.click();
-                              }}
-                            >
-                              <Download className="h-3 w-3" />
-                              {file.originalName}
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         )}
 
