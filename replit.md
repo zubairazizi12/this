@@ -43,11 +43,13 @@ Preferred communication style: Simple, everyday language.
 - **Teacher Management**: Comprehensive teacher profiles with academic rank, contact details, and department assignment (replaces former faculty system).
 - **Vacancies Management**: Dynamic job posting system with database persistence, CRUD operations for vacant positions.
 - **Disciplinary Actions & Rewards**: Tracking system for resident performance incidents and achievements, with file upload support.
-- **Reports Module**: Detailed reporting for residents, forms, disciplinary actions, rewards, and teachers.
+- **Trainer Actions & Reward/Punishment**: Unified tabbed interface in reports showing trainer actions and reward/punishment records with file download capabilities.
+- **Reports Module**: Detailed reporting for residents, forms, disciplinary actions, rewards, and teachers with tabbed navigation.
 - **Authentication**: Secure OAuth integration with Replit Auth and demo fallback.
 - **Authorization**: Role-based permissions (admin for full access, viewer for read-only).
 - **File Upload/Download**: Secure file handling for lectures, trainer actions, rewards, and punishments.
 - **Mobile Responsiveness**: Mobile-first design with collapsible sidebar and responsive layouts.
+- **Sidebar Enhancement**: Header component integrated into sidebar for consistent branding across desktop view.
 
 ### Design Patterns
 - **Repository Pattern**: Abstraction for data access.
