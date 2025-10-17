@@ -10,6 +10,33 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 17, 2025
+**Trainer Reward and Punishment System:**
+- ✅ Created TrainerRewardPunishment database model with type field (reward/punishment)
+- ✅ Implemented authenticated API endpoints at `/api/trainer-reward-punishment`:
+  - POST: Create new reward/punishment record with file uploads
+  - GET: Retrieve all records for a specific trainer
+  - DELETE: Remove record and associated files
+  - File download endpoint with path traversal protection
+- ✅ Built TrainerRewardPunishmentModal component:
+  - Type selector (مکافات/مجازات) for reward or punishment
+  - Description text area for details
+  - Multi-file upload support (up to 10 files, 10MB each)
+  - File preview with size display and removal capability
+- ✅ Secure file handling:
+  - Files stored in `uploads/trainer-reward-punishment/` directory
+  - Filename sanitization and path traversal protection
+  - Automatic file cleanup on record deletion
+- ✅ Added uploads/trainer-reward-punishment/ to .gitignore
+- ✅ Registered routes in server/routes.ts with authentication middleware
+- ✅ All changes tested and verified successfully
+
+**trainers.filter Runtime Error Fix:**
+- ✅ Added Array.isArray() validation in residents.tsx
+- ✅ Fixed filter operations to handle non-array responses from API
+- ✅ Application no longer crashes when MongoDB timeout occurs
+- ✅ Improved error handling for edge cases
+
 ### October 10, 2025
 **Lecture File Upload and Download System (Latest):**
 - ✅ Implemented complete file upload and download system for lectures with backward compatibility
