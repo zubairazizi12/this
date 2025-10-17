@@ -4,6 +4,7 @@ import { setupDemoAuth, isDemoAuthenticated } from "./demoAuth";
 import { UserController, ResidentController, TeacherController } from "./controllers";
 import { trainerRoutes } from "./routes/trainerRoutes";
 import { trainerActionRoutes } from "./routes/trainerActionRoutes";
+import { trainerRewardPunishmentRoutes } from "./routes/trainerRewardPunishmentRoutes";
 import { userRoutes } from "./routes/userRoutes";
 import { lectureRoutes } from "./routes/lectureRoutes";
 import { TeacherModel } from "./models";
@@ -21,6 +22,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   //tranerRoters
   app.use('/api/trainer-actions', isDemoAuthenticated, trainerActionRoutes);
+  app.use('/api/trainer-reward-punishment', isDemoAuthenticated, trainerRewardPunishmentRoutes);
   app.use('/api/trainers', trainerRoutes);
   
   ///////////////////////////////////////////
