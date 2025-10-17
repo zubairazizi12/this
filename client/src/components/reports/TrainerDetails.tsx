@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, Download } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -39,6 +39,7 @@ export default function TrainerDetails({
 }: TrainerDetailsProps) {
   const [selectedForm, setSelectedForm] = useState<string | null>(null);
   const [showActions, setShowActions] = useState(false);
+  const [showRewardPunishment, setShowRewardPunishment] = useState(false);
 
   const { data: trainer, isLoading, error } = useQuery({
     queryKey: ["trainer", trainerId],
@@ -50,6 +51,15 @@ export default function TrainerDetails({
     queryKey: ["trainer-actions", trainerId],
     queryFn: async () => {
       const res = await fetch(`/api/trainer-actions/${trainerId}`);
+      if (!res.ok) return [];
+      return res.json();
+    },
+  });
+
+  const { data: rewardPunishments = [] } = useQuery({
+    queryKey: ["trainer-reward-punishment", trainerId],
+    queryFn: async () => {
+      const res = await fetch(`/api/trainer-reward-punishment/${trainerId}`);
       if (!res.ok) return [];
       return res.json();
     },
@@ -127,8 +137,12 @@ export default function TrainerDetails({
             >
               اکشن‌ها ({actions.length})
             </Button>
-            <Button size="sm" className="bg-red-500 text-white hover:bg-red-600">
-              Disciplinary Actions
+            <Button 
+              size="sm" 
+              className="bg-amber-500 text-white hover:bg-amber-600"
+              onClick={() => setShowRewardPunishment(!showRewardPunishment)}
+            >
+              مجازات/مکافات ({rewardPunishments.length})
             </Button>
           </div>
         </div>
@@ -209,6 +223,104 @@ export default function TrainerDetails({
                               </span>
                             );
                           })}
+                        </div>
+                      </div>
+                    )}
+
+                    {action.files && action.files.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-slate-300">
+                        <p className="text-sm font-semibold text-slate-600 mb-2">
+                          فایل‌های پیوست:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {action.files.map((file: any, index: number) => (
+                            <Button
+                              key={index}
+                              size="sm"
+                              variant="outline"
+                              className="gap-2"
+                              onClick={() => {
+                                const link = document.createElement("a");
+                                link.href = `/api/trainer-actions/download/${file.filename}`;
+                                link.download = file.originalName;
+                                link.click();
+                              }}
+                            >
+                              <Download className="h-3 w-3" />
+                              {file.originalName}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* مجازات/مکافات */}
+        {showRewardPunishment && (
+          <div className="mt-6 border-t border-slate-200 pt-4">
+            <h4 className="font-medium text-slate-900 mb-4">مجازات و مکافات</h4>
+            
+            {rewardPunishments.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">
+                هیچ رکوردی ثبت نشده است
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {rewardPunishments.map((record: any) => (
+                  <div
+                    key={record._id}
+                    className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                      record.type === "reward" 
+                        ? "bg-green-50 border-green-200" 
+                        : "bg-red-50 border-red-200"
+                    }`}
+                  >
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${
+                            record.type === "reward" 
+                              ? "bg-green-100 text-green-800" 
+                              : "bg-red-100 text-red-800"
+                          }`}>
+                            {record.type === "reward" ? "مکافات" : "مجازات"}
+                          </span>
+                          <p className="text-sm text-slate-600">
+                            تاریخ: {new Date(record.createdAt).toLocaleDateString("fa-IR")}
+                          </p>
+                        </div>
+                        <p className="text-base font-medium">{record.description}</p>
+                      </div>
+                    </div>
+
+                    {record.files && record.files.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-slate-300">
+                        <p className="text-sm font-semibold text-slate-600 mb-2">
+                          فایل‌های پیوست:
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {record.files.map((file: any, index: number) => (
+                            <Button
+                              key={index}
+                              size="sm"
+                              variant="outline"
+                              className="gap-2"
+                              onClick={() => {
+                                const link = document.createElement("a");
+                                link.href = `/api/trainer-reward-punishment/download/${file.filename}`;
+                                link.download = file.originalName;
+                                link.click();
+                              }}
+                            >
+                              <Download className="h-3 w-3" />
+                              {file.originalName}
+                            </Button>
+                          ))}
                         </div>
                       </div>
                     )}
