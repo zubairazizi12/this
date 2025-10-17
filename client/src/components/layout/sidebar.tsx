@@ -5,6 +5,7 @@ import { Users, BarChart3, LogOut, SettingsIcon, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useIsMobile } from "@/hooks/use-mobile";
+import Header from "@/components/layout/header";
 
 const navigation = [
   { name: 'ترینری', href: '/residents', icon: Users },
@@ -52,19 +53,30 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
         isMobile && !isOpen && "translate-x-full"
       )}>
         <div className="flex flex-col h-full" onClick={(e) => e.stopPropagation()}>
-        {/* Header - فقط برای دسکتاپ */}
-        {!isMobile && (
-          <div className="border-b border-slate-200 bg-green-600 text-white px-4 py-3">
-            <div className="flex items-center justify-center gap-2">
+        {/* Header */}
+        {!isMobile ? (
+          <Header />
+        ) : (
+          <div className="flex items-center justify-between px-4 py-3 bg-green-600 text-white border-b border-slate-200">
+            <div className="flex items-center gap-2 flex-1">
               <img
                 src="/logo.svg"
                 alt="Logo"
-                className="h-10 w-10"
+                className="h-8 w-8"
               />
-              <h2 className="text-base font-bold text-center">
-                سیستم مدیریتی ترینری شفاخانه چشم نور
+              <h2 className="text-sm font-bold">
+                سیستم مدیریتی ترینری
               </h2>
             </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => onClose?.()}
+              className="text-white hover:bg-green-700"
+              aria-label="بستن منوی ناوبری"
+            >
+              <X className="h-5 w-5" />
+            </Button>
           </div>
         )}
         

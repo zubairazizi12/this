@@ -113,7 +113,7 @@
   - No LSP errors, all features working correctly
   - Server restarted successfully
 [x] 29. Sidebar Header Display Fix - October 17, 2025:
-  - Modified Sidebar component to show logo and text ONLY in desktop mode
-  - Desktop header shows full logo and text "سیستم مدیریتی ترینری شفاخانه چشم نور"
-  - Mobile mode: No header, starts directly with user info section
+  - Desktop mode: Imports and displays Header component in sidebar
+  - Mobile mode: Shows logo + text "سیستم مدیریتی ترینری" + close button (X)
+  - Imported Header component from @/components/layout/header
   - No LSP errors, changes applied successfully via HMR
