@@ -18,7 +18,7 @@ export default function Layout({ children }: LayoutProps) {
 
       {/* Sidebar */}
       <Sidebar 
-        isOpen={isMobileMenuOpen || !isMobile} 
+        isOpen={!isMobile || isMobileMenuOpen} 
         onClose={() => setIsMobileMenuOpen(false)} 
       />
 

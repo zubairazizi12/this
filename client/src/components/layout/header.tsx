@@ -18,7 +18,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           variant="ghost"
           size="icon"
           onClick={onMenuClick}
-          className="text-white hover:bg-green-700 md:hidden"
+          className="text-white hover:bg-green-700 md:hidden focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-green-600"
+          aria-label="باز کردن منوی ناوبری"
         >
           <Menu className="h-6 w-6" />
         </Button>

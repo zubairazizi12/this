@@ -62,7 +62,8 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="hover:bg-slate-100"
+              className="hover:bg-slate-100 focus:ring-2 focus:ring-hospital-green-500"
+              aria-label="بستن منوی ناوبری"
             >
               <X className="h-5 w-5" />
             </Button>
